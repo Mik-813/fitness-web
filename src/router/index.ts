@@ -27,7 +27,8 @@ const router = createRouter({
 })
 
 router.isReady().then(() => {
-  const path = localStorage.getItem('path') ?? '/'
+  const path = localStorage.getItem('path')
+  if (!path) return
   router.replace(path)
   localStorage.removeItem('path')
 })
