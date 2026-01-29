@@ -1,15 +1,13 @@
-import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
 import stylisticPlugin from '@stylistic/eslint-plugin'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import { defineConfig } from 'eslint/config'
 import importPlugin from 'eslint-plugin-import'
+import pluginVue from 'eslint-plugin-vue'
 import globals from 'globals'
 import vueParser from 'vue-eslint-parser'
 import customPlugin from './eslint/eslint.custom.js'
-
-const eslintrc = new FlatCompat()
 
 export default defineConfig([
   {
@@ -19,10 +17,10 @@ export default defineConfig([
       'three.js/**/*.*',
       'vite.config.ts',
       'dist/**/*.*',
-    ], 
+    ],
   },
 
-  ...eslintrc.extends('plugin:vue/recommended'),
+  ...pluginVue.configs['flat/recommended'],
 
   {
     files: ['**/*.vue', '**/*.{js,ts}'],
@@ -35,7 +33,6 @@ export default defineConfig([
         project: ['eslint/tsconfig.eslint.json'],
       },
     },
-    ...js.configs.recommended,
     plugins: {
       '@stylistic': stylisticPlugin,
       '@typescript-eslint': tsPlugin,
@@ -82,6 +79,7 @@ export default defineConfig([
         },
       ],
 
+      '@stylistic/no-multi-spaces': 'warn',
       '@stylistic/quotes': ['warn', 'single'],
       '@stylistic/indent': ['warn', 2],
       '@stylistic/semi': ['warn', 'never'],
@@ -91,7 +89,7 @@ export default defineConfig([
         'warn', {
           max: 2,
           maxBOF: 0,
-          maxEOF: 0, 
+          maxEOF: 0,
         },
       ],
       '@stylistic/comma-spacing': ['warn', { after: true }],
