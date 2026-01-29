@@ -55,6 +55,7 @@ export default defineConfig([
       '@typescript-eslint/promise-function-async': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-inferrable-types': 'warn',
+      '@typescript-eslint/no-empty-function': 'warn',
       'no-console': 'warn',
       'no-empty': 'warn',
       'arrow-body-style': ['warn', 'as-needed'],

@@ -1,22 +1,42 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import MyAbout from '$src/pages/MyAbout.vue'
+import DietPage from '$src/pages/DietPage.vue'
 import MyHome from '$src/pages/MyHome.vue'
 import NotFound from '$src/pages/NotFound.vue'
+import StatisticsChart from '$src/pages/StatisticsChart.vue'
+import TrainingPage from '$src/pages/TrainingPage.vue'
+
+export const routeNames = {
+  home: 'home',
+  statistics: 'statistics',
+  diet: 'diet',
+  training: 'training',
+  notFound: 'notFound',
+}
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
+    name: routeNames.home,
     component: MyHome, 
   },
   {
-    path: '/about',
-    name: 'About',
-    component: MyAbout, 
+    path: '/'+routeNames.statistics,
+    name: routeNames.statistics,
+    component: StatisticsChart, 
+  },
+  {
+    path: '/'+routeNames.diet,
+    name: routeNames.diet,
+    component: DietPage, 
+  },
+  {
+    path: '/'+routeNames.training,
+    name: routeNames.training,
+    component: TrainingPage, 
   },
   {
     path: '/:pathMatch(.*)*',
-    name: 'NotFound',
+    name: routeNames.notFound,
     component: NotFound, 
   },
 ]
