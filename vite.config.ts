@@ -15,5 +15,5 @@ export default defineConfig({
       '$src': '/src',
     },
   },
-  base: process.env.BASE_PATH || '/base',
+  base: process.env.BASE_PATH || '/',
 })

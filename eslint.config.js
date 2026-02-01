@@ -53,6 +53,7 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-inferrable-types': 'warn',
       '@typescript-eslint/no-empty-function': 'warn',
+      '@typescript-eslint/array-type': 'off',
       'no-console': 'warn',
       'no-empty': 'warn',
       'arrow-body-style': ['warn', 'as-needed'],
