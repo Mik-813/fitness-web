@@ -3,13 +3,13 @@ import DietPage from '$src/pages/DietPage.vue'
 import MyHome from '$src/pages/MyHome.vue'
 import NotFound from '$src/pages/NotFound.vue'
 import StatisticsChart from '$src/pages/StatisticsChart.vue'
-import TrainingPage from '$src/pages/TrainingPage.vue'
+import TrainingPage from '$src/pages/WorkoutPage.vue'
 
 export const routeNames = {
   home: 'home',
   statistics: 'statistics',
   diet: 'diet',
-  training: 'training',
+  workout: 'workout',
   notFound: 'notFound',
 }
 
@@ -30,8 +30,8 @@ const routes = [
     component: DietPage, 
   },
   {
-    path: '/'+routeNames.training,
-    name: routeNames.training,
+    path: '/'+routeNames.workout,
+    name: routeNames.workout,
     component: TrainingPage, 
   },
   {

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import AppHeader from '$src/components/AppHeader.vue'
+import Header from '$src/components/HeaderComponent.vue'
 </script>
 
 <template>
-  <AppHeader />
-  
-  <router-view />
+  <div class="flex flex-col h-screen w-full overflow-hidden">
+    <Header />
+
+    <router-view />
+  </div>
 </template>
