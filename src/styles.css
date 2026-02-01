@@ -1,1 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --color-pane-bg: #FFFFFF;
+  --color-pane-text: #45526D;
+  --color-pane-text-dimmed: #AAB2C0;
+  --color-pane-text-secondary: #8892A5;
+
+  --color-main-bg: #F0F5FB;
+  --color-main-text: #45526D;
+  --color-main-text-dimmed: #AAB2C0;
+  --color-main-text-secondary: #8892A5;
+
+  --color-grad-start: #9810FA;
+  --color-grad-end: #4D37EF;
+  --color-grad-text: #FFFFFF;
+  --color-grad-text-dimmed: #E5E5F7;
+}
+
+button {
+  cursor: pointer;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
