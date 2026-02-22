@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import IconLayout from '$src/components/icons/IconLayout.vue'
 
-const { className = 'size-5.5 stroke-2' } = defineProps<{ className?: string, }>()
+const { className = 'size-5 stroke-2' } = defineProps<{ className?: string, }>()
 </script>
 
 <template>
@@ -9,7 +9,7 @@ const { className = 'size-5.5 stroke-2' } = defineProps<{ className?: string, }>
     <path
       stroke-linecap="round"
       stroke-linejoin="round"
-      d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"
+      d="m4.5 12.75 6 6 9-13.5"
     />
   </IconLayout>
 </template>

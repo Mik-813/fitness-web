@@ -8,7 +8,7 @@
   --color-pane-text-dimmed: #AAB2C0;
   --color-pane-text-secondary: #8892A5;
 
-  --color-main-bg: #F0F5FB;
+  --color-main-bg: #faf5ff;
   --color-main-text: #45526D;
   --color-main-text-dimmed: #AAB2C0;
   --color-main-text-secondary: #8892A5;
@@ -17,10 +17,15 @@
   --color-grad-end: #4D37EF;
   --color-grad-text: #FFFFFF;
   --color-grad-text-dimmed: #E5E5F7;
+  --color-primary: #7324F5;
+  --color-secondary: #a855f7;
 }
 
 button {
   cursor: pointer;
+}
+button:disabled {
+  cursor: default;
 }
 
 * {

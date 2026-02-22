@@ -10,8 +10,8 @@ import StatsIcon from '$src/components/icons/StatsIcon.vue'
 import ThreeLinesIcon from '$src/components/icons/ThreeLinesIcon.vue'
 import SwitchButtonGroup from '$src/components/inputs/SwitchButtonGroup.vue'
 import Modal from '$src/components/reusable/ModalWindow.vue'
+import Sidebar from '$src/components/reusable/SidebarComponent.vue'
 import Settings from '$src/components/SettingsComponent.vue'
-import Sidebar from '$src/components/SidebarComponent.vue'
 import router, { routeNames } from '$src/router'
 import { exportCSV, importCSV } from '$src/utils/service-CSV'
 
@@ -72,6 +72,14 @@ const sidebarItems: SidebarItem[]= [
 
 const isSidebarOpen = ref(false)
 const isSettingsOpen = ref(false)
+
+function getRouteIndex() {
+  const route = window.location.pathname.replace('/', '')
+  if (route === routeNames.statistics) return 0
+  if (route === routeNames.diet) return 1
+  if (route === routeNames.workout) return 2
+  return 0
+}
 </script>
 
 <template>
@@ -85,7 +93,10 @@ const isSettingsOpen = ref(false)
     <div class="w-full flex-1" />
 
     <div class="flex items-center justify-between gap-4">
-      <SwitchButtonGroup :items="buttons" />
+      <SwitchButtonGroup
+        :items="buttons"
+        :default-index="getRouteIndex()"
+      />
 
       <button
         aria-label="Open menu"

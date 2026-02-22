@@ -1,11 +1,25 @@
 <script setup lang="ts">
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-vue'
+
+const props = defineProps<{ disableScroll?: boolean, }>()
 
 const osRef = ref<OverlayScrollbarsComponentRef | null>(null)
 const isScrolling = ref(false)
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null
+
+const osOptions = computed(() => {
+  if (props.disableScroll) {
+    return {
+      overflow: {
+        x: 'hidden',
+        y: 'hidden', 
+      },
+    }
+  }
+  return {}
+})
 
 const onScroll = () => {
   isScrolling.value = true
@@ -34,6 +48,7 @@ onMounted(() => {
     ref="osRef"
     class="custom-os-behavior"
     :class="{ 'is-scrolling': isScrolling }"
+    :options="osOptions"
   >
     <slot />
   </OverlayScrollbarsComponent>
@@ -43,13 +58,15 @@ onMounted(() => {
 .custom-os-behavior .os-scrollbar {
   opacity: 0;
   transition: opacity 0.3s ease;
+  overflow-anchor: none;
 }
 
-.custom-os-behavior.is-scrolling .os-scrollbar, .custom-os-behavior .os-scrollbar:hover {
-  opacity: .5;
+.custom-os-behavior.is-scrolling .os-scrollbar, 
+.custom-os-behavior .os-scrollbar:hover {
+  opacity: 1;
 }
 
-.custom-os-behavior .os-scrollbar-handle{
-  background: linear-gradient(180deg, var(--color-grad-end), var(--color-grad-start));
+.custom-os-behavior .os-scrollbar-handle {
+  background: var(--color-primary);
 }
 </style>

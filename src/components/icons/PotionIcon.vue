@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import IconLayout from '$src/components/icons/IconLayout.vue'
 
-const { className = 'size-5 stroke-2' } = defineProps<{ className?: string, }>()
+const { className = 'size-5.5 stroke-2' } = defineProps<{ className?: string, }>()
 </script>
 
 <template>

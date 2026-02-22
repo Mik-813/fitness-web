@@ -57,12 +57,6 @@ export default defineConfig([
       'no-console': 'warn',
       'no-empty': 'warn',
       'arrow-body-style': ['warn', 'as-needed'],
-      '@typescript-eslint/consistent-type-assertions': [
-        'warn', {
-          assertionStyle: 'as',
-          objectLiteralTypeAssertions: 'never',
-        },
-      ],
       '@typescript-eslint/consistent-type-exports': ['warn', { fixMixedExportsWithInlineTypeSpecifier: true }],
       '@typescript-eslint/consistent-type-imports': [
         'warn', {

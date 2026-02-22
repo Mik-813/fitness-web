@@ -16,9 +16,9 @@ const emit = defineEmits<(e: 'click') => void>()
   <button
     type="button"
     :disabled="active"
-    class="flex items-center gap-1 py-1 font-bold transition-all duration-200 disabled:cursor-default"
+    class="flex items-center gap-1 py-1 font-bold disabled:cursor-default px-2 rounded-md"
     :class="{
-      'px-2 bg-grad-text/20 rounded-md': active,
+      'bg-grad-text text-primary': active,
       'bg-transparent': !active
     }"
     @click="emit('click')"

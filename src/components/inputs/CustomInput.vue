@@ -1,56 +1,71 @@
 <script setup lang="ts">
+import { Parser } from 'expr-eval'
 import { ref, computed, onMounted } from 'vue'
 
-// 1. Props & Two-Way Binding ($bindable translation)
-// defineModel requires Vue 3.4+. It creates a ref that syncs with the parent.
 const value = defineModel<string | number>('value')
-const error = defineModel<string>('error', { default: '' })
 
-// 2. Standard Props and Event Callbacks
-const props = withDefaults(
-  defineProps<{
-    initFocus?: boolean
-    label?: string
-    placeholder?: string
-    type?: string
-    // Retaining function props to match your exact Svelte interface
-    onFocus?: () => void
-    onBlur?: () => void
-    onInput?: (value: string) => void
-    onChange?: (value: string) => void
-    onKeyDown?: (key: string) => void
-  }>(), 
-  { type: 'text' },
-)
+const props = defineProps<{
+  initFocus?: boolean
+  label?: string
+  placeholder?: string
+  type?: 'text' | 'number' | 'calculate'
+  error?: string
+  onFocus?: () => void
+  onBlur?: () => void
+  onInput?: (value: string) => void
+  onChange?: (value: string) => void
+  onEnterDown?: (key: string) => void
+}>()
 
-// 3. Local State (Refs)
+const internalError = ref('')
+const mergedError = computed(() => internalError.value || props.error)
+
 const isFocused = ref(false)
 const inputElement = ref<HTMLInputElement | null>(null)
 
-// 4. Computed State ($derived translation)
 const hasValue = computed(() => value.value !== undefined && value.value !== '')
 const isActive = computed(() => isFocused.value || hasValue.value)
 
-// 5. Lifecycle (onMount translation)
 onMounted(() => {
   if (props.initFocus) {
     inputElement.value?.focus()
   }
 })
 
-// 6. Handlers
-// We separate these to keep the template clean and handle type casting
 function handleKeyDown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
     (e.target as HTMLInputElement).blur()
+    props.onEnterDown?.(e.key)
   }
-  props.onKeyDown?.(e.key)
 }
 
 function handleInput(e: Event) {
   const target = e.target as HTMLInputElement
-  // Note: v-model handles the value update automatically
-  props.onInput?.(target.value)
+  let inputValue = target.value
+  
+  if (props.type === 'number') {
+    inputValue = inputValue.replace(/\D/g, '')
+    target.value = inputValue 
+    value.value = inputValue
+    props.onInput?.(inputValue)
+  }
+
+  if (props.type === 'calculate') {
+    inputValue = inputValue.replace(/[^0-9+\-*/().]/g, '')
+    try {
+      inputValue = Parser.evaluate(inputValue).toString()
+    }
+    catch {}
+    target.value = inputValue
+    value.value = inputValue
+    props.onInput?.(inputValue)
+
+  }
+
+  if (props.type === 'text') {
+    value.value = inputValue
+    props.onInput?.(inputValue)
+  }
 }
 
 function handleChange(e: Event) {
@@ -76,7 +91,7 @@ function handleBlur() {
         for="inputField"
         class="absolute left-3 pointer-events-none transition-all duration-200 ease-in-out"
         :class="[
-          error 
+          mergedError 
             ? 'text-red-500' 
             : isFocused 
               ? 'text-purple-600' 
@@ -92,12 +107,12 @@ function handleBlur() {
       <input
         id="inputField"
         ref="inputElement"
-        v-model="value"
-        :type="type"
-        :placeholder="placeholder"
+        :value="value"
+        type="text"
         class="w-full border bg-white focus:ring-2 focus:border-transparent rounded px-3 py-3 transition-all duration-200 outline-none text-sm"
+        :placeholder="placeholder"
         :class="[
-          error 
+          mergedError 
             ? 'border-red-200 focus:ring-red-500' 
             : 'border-gray-200 focus:ring-purple-600'
         ]"
@@ -110,7 +125,7 @@ function handleBlur() {
     </div>
     
     <span class="text-xs text-red-500 px-1 pb-2">
-      {{ error }}
+      {{ mergedError }}
     </span>
   </div>
 </template>
