@@ -12,24 +12,24 @@ import SwitchButtonGroup from '$src/components/inputs/SwitchButtonGroup.vue'
 import Modal from '$src/components/reusable/ModalWindow.vue'
 import Sidebar from '$src/components/reusable/SidebarComponent.vue'
 import Settings from '$src/components/SettingsComponent.vue'
-import router, { routeNames } from '$src/router'
+import router, { paths } from '$src/router'
 import { exportCSV, importCSV } from '$src/utils/service-CSV'
 
 const buttons = [
   {
     text: 'Statistics',
     icon: StatsIcon,
-    onClick: async () => router.push(routeNames.statistics), 
+    onClick: async () => router.push(paths.statistics), 
   },
   {
     text: 'Diet',
     icon: PotionIcon,
-    onClick: async () => router.push(routeNames.diet), 
+    onClick: async () => router.push(paths.diet), 
   },
   {
     text: 'Workout',
     icon: BoltIcon,
-    onClick: async () => router.push(routeNames.workout), 
+    onClick: async () => router.push(paths.workout), 
   },
 ]
 
@@ -74,16 +74,16 @@ const isSidebarOpen = ref(false)
 const isSettingsOpen = ref(false)
 
 function getRouteIndex() {
-  const route = window.location.pathname.replace('/', '')
-  if (route === routeNames.statistics) return 0
-  if (route === routeNames.diet) return 1
-  if (route === routeNames.workout) return 2
+  const route = window.location.pathname
+  if (route === paths.statistics) return 0
+  if (route === paths.diet) return 1
+  if (route === paths.workout) return 2
   return 0
 }
 </script>
 
 <template>
-  <header class="flex bg-gradient-to-r from-grad-start to-grad-end text-white py-2 px-4">
+  <header class="flex bg-linear-to-r from-grad-start to-grad-end text-white py-2 px-4">
     <div class="flex items-center gap-2 font-black">
       <LogoIcon />
 

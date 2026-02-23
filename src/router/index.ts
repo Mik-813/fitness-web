@@ -5,38 +5,43 @@ import NotFound from '$src/pages/NotFound.vue'
 import StatisticsChart from '$src/pages/StatisticsChart.vue'
 import TrainingPage from '$src/pages/WorkoutPage.vue'
 
-export const routeNames = {
-  home: 'home',
-  statistics: 'statistics',
-  diet: 'diet',
-  workout: 'workout',
-  notFound: 'notFound',
+export const paths = {
+  home: '/',
+  statistics: '/statistics',
+  diet: '/diet',
+  workout: '/workout',
+  exercises: '/workout/exercises',
+  exercise: (id: number | string) => `/workout/exercises/${id}`,
+  notFound: '/:pathMatch(.*)*',
 }
 
 const routes = [
   {
-    path: '/',
-    name: routeNames.home,
+    path: paths.home,
     component: MyHome, 
   },
   {
-    path: '/'+routeNames.statistics,
-    name: routeNames.statistics,
+    path: paths.statistics,
     component: StatisticsChart, 
   },
   {
-    path: '/'+routeNames.diet,
-    name: routeNames.diet,
+    path: paths.diet,
     component: DietPage, 
   },
   {
-    path: '/'+routeNames.workout,
-    name: routeNames.workout,
+    path: paths.workout,
     component: TrainingPage, 
   },
   {
-    path: '/:pathMatch(.*)*',
-    name: routeNames.notFound,
+    path: paths.exercises,
+    component: TrainingPage, 
+  },
+  {
+    path: paths.exercise(':id'),
+    component: TrainingPage, 
+  },
+  {
+    path: paths.notFound,
     component: NotFound, 
   },
 ]
