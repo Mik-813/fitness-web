@@ -1,5 +1,6 @@
 interface Exercise {
   id: number
+  image_url: string
   date: string
   title: string
   muscle: string

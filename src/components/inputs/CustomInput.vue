@@ -2,7 +2,7 @@
 import { Parser } from 'expr-eval'
 import { ref, computed, onMounted } from 'vue'
 
-const value = defineModel<string | number>('value')
+const value = defineModel<string | number | undefined | null>('value')
 
 const props = defineProps<{
   initFocus?: boolean
@@ -23,7 +23,7 @@ const mergedError = computed(() => internalError.value || props.error)
 const isFocused = ref(false)
 const inputElement = ref<HTMLInputElement | null>(null)
 
-const hasValue = computed(() => value.value !== undefined && value.value !== '')
+const hasValue = computed(() => value.value === 0 || value.value)
 const isActive = computed(() => isFocused.value || hasValue.value)
 
 onMounted(() => {
@@ -48,6 +48,7 @@ function handleInput(e: Event) {
     target.value = inputValue 
     value.value = inputValue
     props.onInput?.(inputValue)
+    return
   }
 
   if (props.type === 'calculate') {
@@ -59,13 +60,11 @@ function handleInput(e: Event) {
     target.value = inputValue
     value.value = inputValue
     props.onInput?.(inputValue)
-
+    return
   }
-
-  if (props.type === 'text') {
-    value.value = inputValue
-    props.onInput?.(inputValue)
-  }
+  
+  value.value = inputValue
+  props.onInput?.(inputValue)
 }
 
 function handleChange(e: Event) {
@@ -124,7 +123,10 @@ function handleBlur() {
       >
     </div>
     
-    <span class="text-xs text-red-500 px-1 pb-2">
+    <span
+      v-if="mergedError"
+      class="text-xs text-red-500 px-1 pb-2"
+    >
       {{ mergedError }}
     </span>
   </div>

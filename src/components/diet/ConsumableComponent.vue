@@ -2,8 +2,8 @@
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import millify from 'millify'
 import { ref, onMounted, watch } from 'vue'
-import CheckIcon from '../icons/CheckIcon.vue'
 import * as endpoints from '$src/api/endpoints'
+import CheckIcon from '$src/components/icons/CheckIcon.vue'
 import ChevronDown from '$src/components/icons/ChevronDownIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
@@ -13,6 +13,7 @@ import { debounce } from '$src/utils/timers'
 
 const props = defineProps<{
   consumable: Consumable
+  consumables: Consumable[]
   onRemove: (consumable: Consumable) => void
 }>()
 
@@ -42,6 +43,17 @@ function toggleWrapping() {
 }
 
 function handleTitleChange(title: string) {
+  errors.value.title = ''
+  if (!title) {
+    errors.value.title = 'Title cannot be empty'
+    return
+  }
+
+  if (props.consumables.some(c => c.title === title)) {
+    errors.value.title = 'Product already exists'
+    return
+  }
+
   consumable.value.title = title
   debounceUpdateConsumable()
 }
@@ -109,11 +121,20 @@ const debounceUpdateConsumable = debounce(
   }, 
   500,
 )
+
+function useExistingProduct() {
+  debounceUpdateConsumable()
+}
+function overrideExistingProduct() {
+  consumable.value.force_recreate = true
+  debounceUpdateConsumable()
+  consumable.value.force_recreate = false
+}
 </script>
 
 <template>
   <div
-    class="relative bg-gradient-to-r from-grad-start to-grad-end rounded-xl ring-0 transition-all mb-4"
+    class="relative bg-linear-to-r from-grad-start to-grad-end rounded-xl ring-0 transition-all mb-4"
     :data-hot-product-title="consumable.title"
   >
     <div
@@ -149,12 +170,38 @@ const debounceUpdateConsumable = debounce(
         <div class="pt-4" />
         
         <template v-if="!isWrapped">
-          <CustomInput
-            :value="consumable.title"
-            :error="errors.title"
-            label="Title"
-            @input="handleTitleChange"
-          />
+          <div class="pb-4">
+            <CustomInput
+              :value="consumable.title"
+              :error="errors.needs_recreate 
+                ? `The product title conflicts with already existing product “${consumable.title}“.`
+                : errors.title
+              "
+              label="Title"
+              type="text"
+              @input="handleTitleChange"
+            />
+
+            <span
+              v-if="errors.needs_recreate "
+              class="text-xs px-1"
+            >
+              Either 
+              <button
+                class="text-primary"
+                @click="useExistingProduct"
+              >
+                use existing product
+              </button>
+              or
+              <button
+                class="text-primary"
+                @click="overrideExistingProduct"
+              >
+                override the product
+              </button>
+            </span>
+          </div>
 
           <CustomInput
             :value="consumable.kcal_100g"

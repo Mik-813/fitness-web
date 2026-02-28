@@ -69,4 +69,12 @@ onMounted(() => {
 .custom-os-behavior .os-scrollbar-handle {
   background: var(--color-primary);
 }
+
+.custom-os-behavior [data-overlayscrollbars-viewport] {
+  transition: none !important;
+}
+
+.custom-os-behavior [data-overlayscrollbars-padding] {
+  transition: none !important;
+}
 </style>

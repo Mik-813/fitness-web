@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { useDateFormat } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import * as endpoints from '$src/api/endpoints'
 import DateSelector from '$src/components/DateSelector.vue'
 import Consumable from '$src/components/diet/ConsumableComponent.vue'
@@ -35,6 +35,25 @@ const consumables = computed(() => endpoints.getConsumablesRequest(currentDate.v
 
 const weightedProducts = computed(() => endpoints.getWeightedProductsRequest().use([]))
 const isProductLauncherOpen = ref(false)
+
+const transitionName = ref('slide-left')
+
+function slideLeft() {
+  transitionName.value = 'slide-left'
+}
+
+function slideRight() {
+  transitionName.value = 'slide-right'
+}
+
+watch(currentDate, (newDate, oldDate) => {
+  if (newDate < oldDate) {
+    slideRight()
+  }
+  else {
+    slideLeft()
+  }
+})
 
 async function tryRemoveConsumable(consumable: Consumable){
   if (!consumables.value.data) return
@@ -145,14 +164,14 @@ function scrollIntoConsumable(title: string) {
 </script>
 
 <template>
-  <div class="bg-gradient-to-r from-grad-start to-grad-end">
+  <div class="bg-linear-to-r from-grad-start to-grad-end">
     <DateSelector
       v-model="currentDate"
       :available-dates="dates"
     />
   </div>
 
-  <div class="sticky top-0 z-30 -mt-4 bg-gradient-to-r from-grad-start to-grad-end p-4 flex flex-col gap-4">
+  <div class="sticky top-0 z-30 -mt-4 bg-linear-to-r from-grad-start to-grad-end p-4 flex flex-col gap-4">
     <Stats
       :stats="[
         { title: 'Calories', formula: (p) => (p.kcal_100g ?? 0) / 100 },
@@ -166,44 +185,53 @@ function scrollIntoConsumable(title: string) {
     />
   </div>
 
-  <div class="flex flex-col w-full h-screen overflow-hidden relative">
-    <ScrollableTemplate :disable-scroll="isProductLauncherOpen">
-      <main
-        v-auto-animate
-        class="px-4 py-8 max-w-4xl mx-auto"
+  <div class="grid w-full relative overflow-hidden h-screen z-0">
+    <Transition :name="transitionName">
+      <div
+        v-if="consumables.data !== undefined"
+        :key="currentDate.toISOString()"
+        class="flex flex-col w-full h-full overflow-hidden relative col-start-1 row-start-1 bg-main-bg"
       >
-        <template v-if="consumables.data?.length ?? 0 > 0">
-          <div
-            v-for="consumable in consumables.data ?? []"
-            :key="consumable.id"
+        <ScrollableTemplate :disable-scroll="isProductLauncherOpen">
+          <main
+            v-auto-animate
+            class="px-4 py-8 max-w-4xl mx-auto"
           >
-            <Consumable
-              :consumable="consumable"
-              @remove="tryRemoveConsumable"
+            <template v-if="consumables.data.length > 0">
+              <div
+                v-for="consumable in consumables.data ?? []"
+                :key="consumable.id"
+              >
+                <Consumable
+                  :consumable="consumable"
+                  :consumables="consumables.data ?? []"
+                  @remove="tryRemoveConsumable"
+                />
+              </div>
+            </template>
+
+            <NoData
+              v-else
+              title="No products provided"
+              subtitle="Add some food items to start tracking your calories"
             />
-          </div>
-        </template>
+          </main>
 
-        <NoData
-          v-else
-          title="No products provided"
-          subtitle="Add some food items to start tracking your calories"
+          <div class="h-30" />
+        </ScrollableTemplate>
+
+        <ProductLauncher
+          :visible="isProductLauncherOpen"
+          :weighted-products="weightedProducts.data"
+          :consumables="consumables.data ?? []"
+          @create="tryCreateConsumable"
+          @select="trySelectWeightedProduct"
+          @locate="scrollIntoConsumable"
+          @remove="tryRemoveWeightedProduct"
+          @close="isProductLauncherOpen=false"
         />
-      </main>
-
-      <div class="h-30" />
-    </ScrollableTemplate>
-
-    <ProductLauncher
-      :visible="isProductLauncherOpen"
-      :weighted-products="weightedProducts.data"
-      :consumables="consumables.data ?? []"
-      @create="tryCreateConsumable"
-      @select="trySelectWeightedProduct"
-      @locate="scrollIntoConsumable"
-      @remove="tryRemoveWeightedProduct"
-      @close="isProductLauncherOpen=false"
-    />
+      </div>
+    </Transition>
   </div>
   
   <div class="fixed right-0 bottom-0 m-4">
@@ -224,3 +252,29 @@ function scrollIntoConsumable(title: string) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 0.2s ease-out;
+}
+
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+.slide-right-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+.slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+</style>

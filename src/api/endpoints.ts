@@ -151,8 +151,9 @@ export function removeConsumableRequest(id: number) {
 
 // --- Exercises ---
 
-export function getExercisesRequest(date?: string) {
-  const query = date ? `?date=${date}` : ''
+export function getExercisesRequest(date?: Date) {
+  const formatted = useDateFormat(date, 'YYYY-MM-DD').value
+  const query = formatted ? `?record_date=${formatted}` : ''
   return createRequest<Exercise[], ApiError>(
     GET,
     `/api/exercises${query}`,
