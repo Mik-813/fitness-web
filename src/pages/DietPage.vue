@@ -36,7 +36,7 @@ const consumables = computed(() => endpoints.getConsumablesRequest(currentDate.v
 const weightedProducts = computed(() => endpoints.getWeightedProductsRequest().use([]))
 const isProductLauncherOpen = ref(false)
 
-const transitionName = ref('slide-left')
+const transitionName = ref('slide-up')
 
 function slideLeft() {
   transitionName.value = 'slide-left'
@@ -57,14 +57,16 @@ watch(currentDate, (newDate, oldDate) => {
 
 async function tryRemoveConsumable(consumable: Consumable){
   if (!consumables.value.data) return
-  const success = await consumables.value.mutate(
-    popIndentifiable(consumable, consumables.value.data),
-    endpoints.removeConsumableRequest(consumable.id).invoke3,
-  )
-
-  if (!success) {
-    customToast.error('Couldn\'t delete product')
-  }
+  consumables.value.mutate({
+    data: popIndentifiable(consumable, consumables.value.data),
+    request: endpoints.removeConsumableRequest(consumable.id).invoke,
+    onError: () => {
+      customToast.error('Couldn\'t delete product')
+    },
+    onSuccess: () => {
+      weightedProducts.value.execute()
+    },
+  })
 }
 
 async function trySelectWeightedProduct(weightedProduct: WeightedProduct) { 
@@ -84,64 +86,60 @@ async function trySelectWeightedProduct(weightedProduct: WeightedProduct) {
 }
 
 
-async function tryUpdateConsumable(consumable: Consumable) {
+function tryUpdateConsumable(consumable: Consumable) {
   if (!consumables.value.data) return
 
-  const success = await consumables.value.mutate(
-    consumables.value.data.map(c => c.id === consumable.id ? consumable : c),
-    endpoints.updateConsumableRequest(consumable.id, consumable).invoke3,
-  )
-
-  if (!success) {
-    customToast.error('Couldn\'t update product')
-  }
+  consumables.value.mutate({
+    data: consumables.value.data.map(c => c.id === consumable.id ? consumable : c),
+    request: endpoints.updateConsumableRequest(consumable.id, consumable).invoke,
+    onError: () => {
+      customToast.error('Couldn\'t update product')
+    },
+  })
 }
 
 async function tryCreateConsumable(title: string, weightedProduct?: WeightedProduct) {
   if (!consumables.value.data) return
   
-  const consumable = {
-    title,
-    record_date: useDateFormat(currentDate.value, 'YYYY-MM-DD').value,
-    weight_g: 100,
-    consumption_g: 0,
-    ...weightedProduct,
-  } as Consumable
+  consumables.value.mutate({
+    request: endpoints.createConsumableRequest({
+      title,
+      record_date: useDateFormat(currentDate.value, 'YYYY-MM-DD').value,
+      weight_g: weightedProduct?.weight_g,
+    }).invoke,
+    refetch: true,
+    onError: () => {
+      customToast.error('Couldn\'t create new product')
+    },
+  })
+}
 
-  const success = await consumables.value.mutate(
-    consumables.value.data.concat(consumable),
-    endpoints.createConsumableRequest(consumable).invoke3,
-    true,
-  )
-
-  if (!success) {
-    customToast.error('Couldn\'t create new product')
-  }
+async function tryRereateConsumable(title: string, consumable: Consumable) {
+  await endpoints.removeConsumableRequest(consumable.id).invoke()
+  tryCreateConsumable(title)
 }
 
 async function tryRemoveWeightedProduct(weightedProduct: WeightedProduct) {
-  const success = await weightedProducts.value.mutate(
-    popIndentifiable(weightedProduct, weightedProducts.value.data),
-    endpoints.removeWeightedProductRequest(weightedProduct.id).invoke3,
-  )
-
-  if (!success) {
-    customToast.error('Couldn\'t delete product')
-  }
+  weightedProducts.value.mutate({
+    data: popIndentifiable(weightedProduct, weightedProducts.value.data),
+    request: endpoints.removeWeightedProductRequest(weightedProduct.id).invoke,
+    onError: () => {
+      customToast.error('Couldn\'t delete product')
+    },
+  })
 }
 
 async function tryResetDate() {
-  const success = await consumables.value.mutate(
-    [],
-    endpoints.removeDatesRequest({
+  consumables.value.mutate({
+    data: [],
+    request: endpoints.removeDatesRequest({
       filter: 'consumables',
-      record_date: useDateFormat(currentDate.value, 'YYYY-MM-DD').value, 
-    }).invoke3,
-  )
-
-  if (!success) {
-    customToast.error('Couldn\'t reset date')
-  }
+      record_date: useDateFormat(currentDate.value, 'YYYY-MM-DD').value,
+    }).invoke,
+    onError: () => {
+      customToast.error('Couldn\'t reset date')
+    }, 
+  })
 }
 
 function scrollIntoConsumable(title: string) {
@@ -160,6 +158,16 @@ function scrollIntoConsumable(title: string) {
     () => element.classList.remove('ring-3', 'ring-secondary', 'rounded-t-lg'),
     1000,
   )
+}
+
+function updateWeightedTitles(title: string, oldTitle: string) {
+   
+  weightedProducts.value.mutate({
+    data: weightedProducts.value.data.map(
+      // eslint-disable-next-line @stylistic/object-property-newline
+      obj => obj.title === oldTitle ? { ...obj, title } : obj,
+    ), 
+  })
 }
 </script>
 
@@ -199,12 +207,16 @@ function scrollIntoConsumable(title: string) {
           >
             <template v-if="consumables.data.length > 0">
               <div
-                v-for="consumable in consumables.data ?? []"
+                v-for="(consumable, idx) in consumables.data ?? []"
                 :key="consumable.id"
               >
                 <Consumable
-                  :consumable="consumable"
-                  :consumables="consumables.data ?? []"
+                  v-model="consumables.data[idx]"
+                  :consumables="consumables.data"
+                  :weighted-products="weightedProducts.data"
+                  @title-update="updateWeightedTitles"
+                  @weights-update="weightedProducts.execute"
+                  @use-existing-product="tryRereateConsumable"
                   @remove="tryRemoveConsumable"
                 />
               </div>
@@ -228,27 +240,27 @@ function scrollIntoConsumable(title: string) {
           @select="trySelectWeightedProduct"
           @locate="scrollIntoConsumable"
           @remove="tryRemoveWeightedProduct"
-          @close="isProductLauncherOpen=false"
+          @close="()=> {isProductLauncherOpen=false; consumables.execute()}"
         />
       </div>
     </Transition>
-  </div>
   
-  <div class="fixed right-0 bottom-0 m-4">
-    <div class="flex flex-col gap-2">
-      <button
-        class="flex gap-2 bg-gradient-to-r from-grad-start to-grad-end hover:opacity-90 transition-opacity duration-200 text-grad-text p-4 rounded-lg font-bold items-center"
-        @click="isProductLauncherOpen = true"
-      >
-        <Plus class="stroke-2" /> Add product
-      </button>
+    <div class="fixed right-0 bottom-0 m-4">
+      <div class="flex flex-col gap-2">
+        <button
+          class="flex gap-2 shadow-lg shadow-primary/40 bg-linear-to-r from-grad-start to-grad-end transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+          @click="isProductLauncherOpen = true"
+        >
+          <Plus class="stroke-2" /> Add product
+        </button>
 
-      <button
-        class="flex gap-2 bg-gradient-to-r from-red-600 to-orange-600 hover:opacity-90 transition-opacity duration-200 text-grad-text p-4 rounded-lg font-bold items-center"
-        @click="tryResetDate"
-      >
-        <TrashIcon class="stroke-2" /> Reset date
-      </button>
+        <button
+          class="flex gap-2 shadow-lg shadow-red-600/40 bg-linear-to-r from-red-600 to-orange-600 transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+          @click="tryResetDate"
+        >
+          <TrashIcon class="stroke-2" /> Reset date
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -276,5 +288,30 @@ function scrollIntoConsumable(title: string) {
 .slide-right-leave-to {
   opacity: 0;
   transform: translateX(20px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.2s ease-out;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 </style>

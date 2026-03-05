@@ -1,8 +1,8 @@
 interface StoreConsumableRequest {
-  record_date: string
-  consumption_g: number
-  weight_g: number
   title: string
+  record_date: string
+  weight_g?: number
+  consumption_g?: number
   kcal_100g?: number
   carbs_100g?: number
   protein_100g?: number
@@ -11,4 +11,4 @@ interface StoreConsumableRequest {
   fiber_100g?: number
 }
 
-interface UpdateConsumableRequest extends Partial<StoreConsumableRequest> { force_recreate?: boolean, }
+interface UpdateConsumableRequest extends Partial<StoreConsumableRequest> { override?: boolean, }

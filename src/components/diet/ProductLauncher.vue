@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onClickOutside } from '@vueuse/core'
 import Fuse from 'fuse.js'
 import { ref, computed, onMounted } from 'vue'
 import MagnifierIcon from '$src/components/icons/MagnifierIcon.vue'
@@ -19,27 +20,14 @@ const emit = defineEmits<{
   remove: [item: WeightedProduct]
 }>()
 
+const disableHoverTransition = ref(false)
 const searchQuery = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
+const dropdownContainer = ref<HTMLElement | null>(null)
 
-const vClickOutside = {
-  mounted(el: any, binding: any) {
-    el._clickOutside = (event: Event) => {
-      if (!(el === event.target || el.contains(event.target))) {
-        binding.value(event)
-      }
-    }
-    setTimeout(
-      () => {
-        document.addEventListener('click', el._clickOutside)
-      }, 
-      0,
-    )
-  },
-  unmounted(el: any) {
-    document.removeEventListener('click', el._clickOutside)
-  },
-}
+onClickOutside(dropdownContainer, () => {
+  closeDropdown()
+})
 
 const availableProducts = computed(
   () => props.weightedProducts
@@ -53,7 +41,6 @@ const availableProducts = computed(
       return (a.weight_g || 0) - (b.weight_g || 0)
     }),
 )
-
 
 const fuse = computed(() => new Fuse(availableProducts.value, {
   keys: ['title'],
@@ -73,7 +60,7 @@ const exactConsumableMatch = computed(() => {
 
 const showLocateButton = computed(() => exactConsumableMatch.value && filteredProducts.value.length === 0)
 
-const showCreateButton = computed(() => !!searchQuery.value.trim() && !exactConsumableMatch.value && filteredProducts.value.length === 0)
+const showCreateButton = computed(() => !!searchQuery.value.trim() && !exactConsumableMatch.value)
 
 const closeDropdown = () => {
   emit('close')
@@ -86,7 +73,12 @@ const handleItemClick = (item: WeightedProduct) => {
 }
 
 const handleRemove = (item: WeightedProduct) => {
+  disableHoverTransition.value = true
   emit('remove', item)
+  setTimeout(
+    () => (disableHoverTransition.value = false), 
+    100,
+  )
 }
 
 const handleLocate = () => {
@@ -104,7 +96,6 @@ onMounted(() => {
 })
 </script>
 
-
 <template>
   <Transition
     enter-active-class="transition-opacity duration-150 ease-out"
@@ -119,7 +110,7 @@ onMounted(() => {
       class="absolute inset-0 z-30 bg-black/20 backdrop-blur-sm flex items-start justify-center p-4"
     >
       <div 
-        v-click-outside="closeDropdown"
+        ref="dropdownContainer"
         class="bg-pane-bg rounded-lg flex flex-col w-full max-w-lg overflow-hidden mt-12 border-4 border-pane-bg"
       >
         <div class="p-1">
@@ -128,10 +119,25 @@ onMounted(() => {
             v-model="searchQuery"
             type="text"
             placeholder="Add products"
-            class="text-primary py-2 px-3 w-full text-sm border-2 border-primary outline-none bg-transparent text-pane-text-dimmed rounded-md"
+            class="text-primary py-2 px-3 w-full text-sm border-2 border-primary outline-none bg-transparent rounded-md"
             autofocus
           >
         </div>
+        
+
+        <button
+          v-if="showCreateButton"
+          class="flex gap-1 items-center px-1.5 p-1.5 hover:bg-primary/5 rounded-sm text-sm cursor-pointer w-full transition-colors"
+          @click="handleCreate"
+        >
+          <div class="bg-linear-to-r from-grad-start to-grad-end rounded-md text-white p-1 mx-1">
+            <plus-icon class-name="size-4 stroke-3" />
+          </div>
+
+          <span class="text-primary text-sm font-medium">
+            Create new product
+          </span>
+        </button>
 
         <div
           v-if="filteredProducts.length" 
@@ -145,11 +151,12 @@ onMounted(() => {
             v-for="(item, index) in filteredProducts" 
             :key="item.id || index"
             class="
-              hover:pl-2 duration-200 transition-[padding]
+              hover:pl-2 
               flex justify-between text-sm rounded-sm
               even:bg-primary/5
               text-primary
               odd:bg-transparent"
+            :class="disableHoverTransition ? '' : 'duration-200 transition-[padding]'"
           >
             <button
               class="flex-1 px-4 py-2 cursor-pointer flex items-center justify-start text-left group"
@@ -168,7 +175,7 @@ onMounted(() => {
 
             <button
               class="p-2 items-center group"
-              @click="handleRemove(item)"
+              @click.stop="handleRemove(item)"
             >
               <div
                 class="
@@ -184,7 +191,7 @@ onMounted(() => {
 
           <button
             v-if="showLocateButton"
-            class="flex gap-0.5 items-center px-1 hover:bg-primary/5 rounded-sm text-sm cursor-pointer w-full text-purple-600 transition-colors"
+            class="flex gap-0.5 items-center px-1 hover:bg-primary/5 rounded-sm text-sm cursor-pointer w-full text-primary transition-colors"
             @click="handleLocate"
           >
             <div class="p-1.5">
@@ -193,20 +200,6 @@ onMounted(() => {
 
             <span class="text-sm font-medium">
               {{ searchQuery || "Locate untitled product" }}
-            </span>
-          </button>
-
-          <button
-            v-if="showCreateButton"
-            class="flex gap-1.5 items-center px-1 hover:bg-primary/5 rounded-sm text-sm cursor-pointer w-full transition-colors"
-            @click="handleCreate"
-          >
-            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full text-white p-1.5 m-1.5">
-              <plus-icon class-name="size-4 stroke-3" />
-            </div>
-
-            <span class="text-purple-600 text-sm font-medium">
-              Create new product
             </span>
           </button>
         </div>

@@ -125,7 +125,7 @@ function handleBlur() {
     
     <span
       v-if="mergedError"
-      class="text-xs text-red-500 px-1 pb-2"
+      class="text-xs text-red-500 px-1"
     >
       {{ mergedError }}
     </span>

@@ -9,11 +9,11 @@ import SettingsIcon from '$src/components/icons/SettingsIcon.vue'
 import StatsIcon from '$src/components/icons/StatsIcon.vue'
 import ThreeLinesIcon from '$src/components/icons/ThreeLinesIcon.vue'
 import SwitchButtonGroup from '$src/components/inputs/SwitchButtonGroup.vue'
-import Modal from '$src/components/reusable/ModalWindow.vue'
 import Sidebar from '$src/components/reusable/SidebarComponent.vue'
-import Settings from '$src/components/SettingsComponent.vue'
+import SettingsModal from '$src/components/settings/SettingsModal.vue'
 import router, { paths } from '$src/router'
 import { exportCSV, importCSV } from '$src/utils/service-CSV'
+import { showModal } from '$src/utils/show-modal'
 
 const buttons = [
   {
@@ -41,7 +41,7 @@ type SidebarItem = Item<{
 const sidebarItems: SidebarItem[]= [
   {
     title: 'Import',
-    subtitle: 'Import food data',
+    subtitle: 'Import your data',
     data: {
       className: 'bg-blue-500', 
       Icon: ExportIcon,
@@ -50,7 +50,7 @@ const sidebarItems: SidebarItem[]= [
   },
   {
     title: 'Export',
-    subtitle: 'Export food data',
+    subtitle: 'Export your data',
     data: {
       className: 'bg-green-500',
       Icon: ImportIcon,
@@ -64,14 +64,11 @@ const sidebarItems: SidebarItem[]= [
       className: 'bg-orange-500',
       Icon: SettingsIcon,
     },
-    onClick: () => {
-      isSettingsOpen.value = true 
-    },
+    onClick: () => showModal(SettingsModal),
   },
 ]
 
 const isSidebarOpen = ref(false)
-const isSettingsOpen = ref(false)
 
 function getRouteIndex() {
   const route = window.location.pathname

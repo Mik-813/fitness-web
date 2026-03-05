@@ -1,90 +1,77 @@
 <script setup lang="ts" generic="T">
-import { defineModel } from 'vue'
-import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
+import { onClickOutside } from '@vueuse/core'
+import { ref, onMounted, nextTick, computed } from 'vue'
 
-// 1. Types
-// Assuming ListItem structure based on your usage. 
-// If this is imported externally, remove this interface and import it.
-export interface ListItem<T> {
-  title: string
-  subtitle?: string
-  onClick?: (item: ListItem<T>) => void
-  onRemove?: (item: ListItem<T>) => void
-  // ... T properties
-}
-
-// 2. Two-way binding (replaces $bindable)
-// Requires Vue 3.4+. If older, use props/emits manually.
-const visible = defineModel<boolean>('visible', { default: false })
-
-// 3. Props
-// Note: We do NOT define 'empty' here. In Vue, that is a <slot>.
 const props = defineProps<{
-  items: ListItem<T>[]
-  onClick?: (item: ListItem<T>) => void
-  onRemove?: (item: ListItem<T>) => void
+  items: Item<T>[]
+  triggerRef?: HTMLElement | null
 }>()
 
-// 4. Helper for the empty slot action
-const close = () => {
-  visible.value = false
-}
+const emit = defineEmits<{
+  (e: 'select', item: Item<T>): void
+  (e: 'close'): void
+}>()
 
-// 5. Handlers to keep template clean
-function handleItemClick(item: ListItem<T>) {
-  visible.value = false
-  item.onClick?.(item)
-  props.onClick?.(item)
-}
+const dropdownRef = ref<HTMLElement | null>(null)
 
-function handleRemove(item: ListItem<T>) {
-  item.onRemove?.(item)
-  props.onRemove?.(item)
-}
+const verticalClass = ref('top-[calc(100%+0.5rem)]') 
+const horizontalClass = ref('left-1/2 -translate-x-1/2') 
+
+const ignoreRef = computed(() => props.triggerRef ?? undefined)
+
+onClickOutside(
+  dropdownRef,
+  () => emit('close'),
+  { ignore: [ignoreRef] }, 
+)
+
+onMounted(async () => {
+  await nextTick() 
+  if (!props.triggerRef || !dropdownRef.value) return
+
+  const buttonRect = props.triggerRef.getBoundingClientRect()
+  const dropdownRect = dropdownRef.value.getBoundingClientRect()
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+  
+  const spaceBelow = viewportHeight - buttonRect.bottom
+  const spaceAbove = buttonRect.top
+
+  if (spaceBelow < dropdownRect.height && spaceAbove > dropdownRect.height) {
+    verticalClass.value = 'bottom-[calc(100%+0.5rem)]'
+  }
+  
+  const buttonCenter = buttonRect.left + (buttonRect.width / 2)
+  const halfDropdown = dropdownRect.width / 2
+
+  if (buttonCenter - halfDropdown < 0) {
+    
+    horizontalClass.value = 'left-0'
+  }
+  else if (buttonCenter + halfDropdown > viewportWidth) {
+    
+    horizontalClass.value = 'right-0'
+  }
+  else {
+    
+    horizontalClass.value = 'left-1/2 -translate-x-1/2'
+  }
+})
 </script>
 
 <template>
-  <ul 
-    v-if="visible" 
-    class="absolute inset-x-0 bg-white shadow rounded-lg py-2 mt-2 z-50"
+  <div
+    ref="dropdownRef"
+    class="absolute z-50 flex flex-col w-max overflow-hidden rounded-md shadow-lg ring-1 ring-black/5 bg-pane-bg text-pane-text p-1"
+    :class="[verticalClass, horizontalClass]"
   >
-    <template v-if="items.length > 0">
-      <div 
-        v-for="(item, index) in items" 
-        :key="(item as any).id || index"
-        class="flex justify-between hover:bg-purple-50/50 text-sm"
-      >
-        <button
-          class="flex-1 px-4 cursor-pointer flex items-center justify-start"
-          @click="handleItemClick(item)"
-        >
-          <div class="flex gap-2">
-            {{ item.title }}
-            <span
-              v-if="item.subtitle"
-              class="text-gray-400"
-            >
-              {{ item.subtitle }}
-            </span>
-          </div>
-        </button>
-
-        <button
-          class="p-2 items-center group"
-          @click="handleRemove(item)"
-        >
-          <div class="content-center h-6 rounded-full text-gray-300 group-hover:text-gray-500 group-hover:bg-gray-500/10 aspect-square transition-colors cursor-pointer">
-            <x-mark-icon />
-          </div>
-        </button>
-      </div>
-    </template>
-
-    <div v-else>
-      <slot
-        name="empty"
-        :close="close"
-      />
-    </div>
-  </ul>
+    <button
+      v-for="(item, index) in items"
+      :key="index"
+      class="px-4 py-2 rounded text-left text-sm text-pane-title transition-colors duration-200 ease-in-out hover:bg-primary/5"
+      @click="emit('select', item)"
+    >
+      {{ item.title }}
+    </button>
+  </div>
 </template>

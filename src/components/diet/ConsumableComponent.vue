@@ -9,26 +9,9 @@ import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
 import Slider from '$src/components/reusable/SliderComponent.vue'
 import { customToast } from '$src/utils/custom-toast'
-import { debounce } from '$src/utils/timers'
 
-const props = defineProps<{
-  consumable: Consumable
-  consumables: Consumable[]
-  onRemove: (consumable: Consumable) => void
-}>()
-
-const isWrapped = ref(true)
-const isNutriListOpen = ref(false)
 
 const containerRef = ref<HTMLDivElement | null>(null)
-
-const consumable = ref(props.consumable)
-watch(() => props.consumable, (value) => {
-  consumable.value = value
-})
-
-const errors = ref<ConsumableError>({})
-
 onMounted(() => {
   if (containerRef.value) {
     containerRef.value.scrollIntoView({
@@ -38,104 +21,162 @@ onMounted(() => {
   }
 })
 
-function toggleWrapping() {
-  isWrapped.value = !isWrapped.value
+const consumableModel = defineModel<Consumable>({ required: true })
+const props = defineProps<{
+  consumables: Consumable[]
+  weightedProducts: WeightedProduct[]
+  onUseExistingProduct: (title: string, consumable: Consumable) => void
+  onWeightsUpdate: () => void
+  onTitleUpdate: (title: string, oldTitle: string) => void
+  onRemove: (consumable: Consumable) => void
+}>()
+
+
+const consumable = endpoints.getConsumableRequest(consumableModel.value.id).use(consumableModel.value, false)
+watch(() => consumable.data, (newValue) => {
+  if (consumableModel.value !== newValue) {
+    consumableModel.value = newValue
+  }
+})
+
+watch(consumableModel, (newValue) => {
+  if (consumable.data !== newValue) {
+    consumable.data = newValue
+  }
+})
+
+const isWrapped = ref(true)
+const isNutriListOpen = ref(false)
+
+const addWeightQuery = ref('')
+
+const errors = ref<ConsumableError>({})
+  
+async function mutateConsumable(prop: Partial<Consumable>) {
+  return await consumable.mutate({
+    data: {
+      ...consumable.data,
+      ...prop,
+    },
+    request: async () => {
+      const res = await endpoints.updateConsumableRequest(
+        consumable.data.id,
+        consumable.data,
+      ).invoke()
+      if (res.error) {
+        customToast.error(res.error.message)
+        if (res.error.errors) {
+          errors.value = res.error.errors
+        }
+      }
+      return res
+    }, 
+    debounce: 500, 
+  })
 }
 
-function handleTitleChange(title: string) {
+let tempTitle = consumable.data.title
+async function handleTitleChange(value: string) {
+  tempTitle = value
   errors.value.title = ''
-  if (!title) {
+  errors.value.needs_recreate = false
+
+  if (value === consumable.data.title) return
+
+  if (!value) {
     errors.value.title = 'Title cannot be empty'
     return
   }
-
-  if (props.consumables.some(c => c.title === title)) {
-    errors.value.title = 'Product already exists'
+  
+  if (props.consumables.some(c => c.title === value && c.id !== consumable.data.id)) {
+    errors.value.title = 'The product with this title was already added'
     return
   }
 
-  consumable.value.title = title
-  debounceUpdateConsumable()
+  if (props.weightedProducts.some(c => c.title === value)) {
+    errors.value.title = `The product title conflicts with existing product "${value}"`
+    errors.value.needs_recreate = true
+    return
+  }
+
+  props.onTitleUpdate(value, consumable.data.title)
+  mutateConsumable({ title: value })
 }
+
+
+function handleKcalChange(value: string) {
+  mutateConsumable({ kcal_100g: Number(value) })
+}
+
 
 function handleConsumptionChange(value: number) {
-  consumable.value.consumption_g = value
-  debounceUpdateConsumable()
+  mutateConsumable({ consumption_g: value })
 }
 
-function handleWeightChange(weight: number) {
+
+function handleWeightChange(value: number) {
+  props.onWeightsUpdate()
   errors.value.weight_g = ''
-  if (weight < consumable.value.consumption_g) {
+  if (value < consumable.data.consumption_g) {
     customToast.error('Weight can\'t be less than consumption')
     errors.value.weight_g = 'Weight can\'t be less than consumption'
     return
   }
-  consumable.value.weight_g = weight
-  debounceUpdateConsumable()
+
+  mutateConsumable({ weight_g: value })
 }
 
-const addWeightQuery = ref('')
-
 function handleAddWeightChange(value: string) {
+  props.onWeightsUpdate()
   addWeightQuery.value = value
   errors.value.weights_g = ''
   if (!value) return
   const weight = Number(value)
-  if (consumable.value.weights_g.includes(weight)) {
+  if (consumable.data.weights_g.includes(weight)) {
     const errStr = 'Weight already exists'
-    customToast.error(errStr)
     errors.value.weights_g = errStr
     return
   }
   if (weight < 1) {
     const errStr = 'Weight should be at least 1'
-    customToast.error(errStr)
     errors.value.weights_g = errStr
     return
   }
 }
 
 function updateAddWeight() {
-  consumable.value.weights_g.push(Number(addWeightQuery.value))
-  debounceUpdateConsumable()
+  mutateConsumable({
+    weights_g: [
+      ...consumable.data.weights_g, 
+      Number(addWeightQuery.value),
+    ], 
+  })
   addWeightQuery.value = ''
 }
 
-function handleKcalChange(value: string) {
-  consumable.value.kcal_100g = Number(value)
-  debounceUpdateConsumable()
+function toggleWrapping() {
+  isWrapped.value = !isWrapped.value
 }
 
-const debounceUpdateConsumable = debounce(
-  async () => {
-    const { error } = await endpoints.updateConsumableRequest(
-      consumable.value.id,
-      consumable.value,
-    ).invoke()
-    if (error) {
-      customToast.error(error.message)
-      if (error.errors) {
-        errors.value = error.errors
-      }
-    }
-  }, 
-  500,
-)
+async function overrideExistingProduct() {
+  const { error } = await endpoints.updateConsumableRequest(
+    consumable.data.id, 
+    {
+      ...consumable.data,
+      override: true, 
+    },
+  ).invoke()
 
-function useExistingProduct() {
-  debounceUpdateConsumable()
-}
-function overrideExistingProduct() {
-  consumable.value.force_recreate = true
-  debounceUpdateConsumable()
-  consumable.value.force_recreate = false
+  if (error) {
+    customToast.error('Couldn\'t override product')
+  }
 }
 </script>
 
 <template>
   <div
     class="relative bg-linear-to-r from-grad-start to-grad-end rounded-xl ring-0 transition-all mb-4"
-    :data-hot-product-title="consumable.title"
+    :data-hot-product-title="consumable.data.title"
   >
     <div
       ref="containerRef"
@@ -153,14 +194,14 @@ function overrideExistingProduct() {
         
         <span
           class="font-semibold"
-          :class="consumable.title ? 'text-gray-800' : 'text-gray-400'"
+          :class="consumable.data.title ? 'text-gray-800' : 'text-gray-400'"
         >
-          {{ consumable.title || "(Empty title)" }}
+          {{ consumable.data.title || "(Empty title)" }}
         </span>
 
         <button
           class="text-gray-500 px-1"
-          @click="onRemove(consumable)"
+          @click="onRemove(consumable.data)"
         >
           <XMarkIcon />
         </button>
@@ -170,13 +211,10 @@ function overrideExistingProduct() {
         <div class="pt-4" />
         
         <template v-if="!isWrapped">
-          <div class="pb-4">
+          <div>
             <CustomInput
-              :value="consumable.title"
-              :error="errors.needs_recreate 
-                ? `The product title conflicts with already existing product “${consumable.title}“.`
-                : errors.title
-              "
+              :value="consumable.data.title"
+              :error="errors.title"
               label="Title"
               type="text"
               @input="handleTitleChange"
@@ -186,10 +224,10 @@ function overrideExistingProduct() {
               v-if="errors.needs_recreate "
               class="text-xs px-1"
             >
-              Either 
+              You can either 
               <button
                 class="text-primary"
-                @click="useExistingProduct"
+                @click="() => onUseExistingProduct(tempTitle, consumable.data)"
               >
                 use existing product
               </button>
@@ -204,7 +242,7 @@ function overrideExistingProduct() {
           </div>
 
           <CustomInput
-            :value="consumable.kcal_100g"
+            :value="consumable.data.kcal_100g"
             :error="errors.kcal_100g"
             type="calculate"
             label="Calories (kcal/100g)"
@@ -236,16 +274,12 @@ function overrideExistingProduct() {
             </div>
           </div>
 
-          <div class="text-sm text-primary font-bold">
-            Weights
-          </div>
-
           <div class="flex gap-2 pt-3 px-1">
             <button
-              v-for="weight, index in consumable.weights_g"
+              v-for="weight, index in consumable.data.weights_g"
               :key="index"
               class="px-3 py-0.5 font-bold rounded w-fit text-sm"
-              :class="weight===consumable.weight_g ? 'bg-secondary text-grad-text ring-2 ring-secondary ring-offset-2' : 'text-secondary bg-secondary/10'"
+              :class="weight===consumable.data.weight_g ? 'bg-secondary text-grad-text ring-2 ring-secondary ring-offset-2' : 'text-secondary bg-secondary/10'"
               @click="()=>handleWeightChange(weight)"
             >
               {{ `${weight}g` }}
@@ -256,8 +290,8 @@ function overrideExistingProduct() {
         </template>
 
         <Slider
-          :current-value="consumable.consumption_g"
-          :max-value="consumable.weight_g"
+          :current-value="consumable.data.consumption_g"
+          :max-value="consumable.data.weight_g"
           @current-value-change="handleConsumptionChange"
           @max-value-change="handleWeightChange"
         />
@@ -277,7 +311,7 @@ function overrideExistingProduct() {
         </span>
 
         <span class="text-sm">
-          {{ millify(((consumable.kcal_100g ?? 0) * (consumable.consumption_g ?? 0)) / 100) }}
+          {{ millify(((consumable.data.kcal_100g ?? 0) * (consumable.data.consumption_g ?? 0)) / 100) }}
         </span>
       </div>
       

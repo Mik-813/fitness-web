@@ -1,25 +1,28 @@
 <script setup lang="ts">
-import { onClickOutside } from '@vueuse/core' // *See note below
-import { ref } from 'vue'
-import XMarkIcon from '../icons/XMarkIcon.vue'
+import { onClickOutside } from '@vueuse/core'
+import { onMounted, ref } from 'vue'
+import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 
-// 1. $bindable(false) -> defineModel
-// Vue 3.4+ macro for two-way binding (v-model:visible)
-const visible = defineModel<boolean>('visible', { default: false })
+const visible = defineModel<boolean>('visible', { default: undefined })
 
-// 2. Props
-defineProps<{ title?: string, }>()
+onMounted(() => {
+  visible.value ??= true
+})
 
-// 3. Logic & Refs
+const props = defineProps<{
+  title?: string
+  disableNativeClosing?: boolean
+}>()
+
 const modalContainer = ref<HTMLElement | null>(null)
 
 function closeModal() {
   visible.value = false
 }
 
-// 4. Action -> Composable
-// Instead of use:onClickOutside, we use a ref and a composable
-onClickOutside(modalContainer, closeModal)
+if (!props.disableNativeClosing){
+  onClickOutside(modalContainer, closeModal)
+}
 </script>
 
 <template>
@@ -33,34 +36,39 @@ onClickOutside(modalContainer, closeModal)
   >
     <div
       v-if="visible"
-      class="flex flex-col justify-around items-center p-2 bg-black/50 z-50 fixed inset-0 z-50"
+      class="flex flex-col justify-around items-center p-2 bg-black/50 z-50 fixed inset-0"
     >
       <div class="sm:hidden" />
       
       <form
         ref="modalContainer"
-        class="flex flex-col bg-white rounded-lg shadow-lg w-full h-fit max-w-md px-4 py-3 gap-1"
+        class="flex flex-col bg-white rounded-lg shadow-lg w-full h-fit max-w-md p-4 gap-1"
         @submit.prevent
       >
         <div class="flex items-center justify-between">
-          <span class="text-gray-600 font-medium">
-            {{ title }}
-          </span>
+          <div>
+            <span class="text-black font-bold text-[1.07rem] pr-1">
+              {{ title }}
+            </span>
+
+            <div class="mt-1 rounded h-0.75 bg-primary" />
+          </div>
           
           <div
+            v-if="!disableNativeClosing"
             aria-label="close button"
             role="button"
             tabindex="0"
-            class="text-gray-500 px-1 cursor-pointer"
+            class="text-gray-500 cursor-pointer"
             @click="closeModal"
           >
-            <XMarkIcon />
+            <XMarkIcon class-name="size-5" />
           </div>
         </div>
         
-        <main>
+        <div class="pt-1">
           <slot :close="closeModal" />
-        </main>
+        </div>
       </form>
     </div>
   </Transition>
