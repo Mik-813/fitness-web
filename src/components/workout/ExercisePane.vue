@@ -136,38 +136,6 @@ onUnmounted(() => {
           >
             {{ tag }}
           </span>
-
-          <span 
-            v-for="(tag, index) in tags" 
-            :key="index" 
-            class="whitespace-nowrap bg-secondary/20 text-secondary font-bold px-2 py-0.5 rounded-md text-sm lowercase"
-          >
-            {{ tag }}
-          </span>
-          
-          <span 
-            v-for="(tag, index) in tags" 
-            :key="index" 
-            class="whitespace-nowrap bg-secondary/20 text-secondary font-bold px-2 py-0.5 rounded-md text-sm lowercase"
-          >
-            {{ tag }}
-          </span>
-          
-          <span 
-            v-for="(tag, index) in tags" 
-            :key="index" 
-            class="whitespace-nowrap bg-secondary/20 text-secondary font-bold px-2 py-0.5 rounded-md text-sm lowercase"
-          >
-            {{ tag }}
-          </span>
-          
-          <span 
-            v-for="(tag, index) in tags" 
-            :key="index" 
-            class="whitespace-nowrap bg-secondary/20 text-secondary font-bold px-2 py-0.5 rounded-md text-sm lowercase"
-          >
-            {{ tag }}
-          </span>
         </div>
 
         <transition name="fade">

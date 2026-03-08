@@ -21,7 +21,7 @@ api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token')
     token && (config.headers.Authorization = token)
-    config.headers.Authorization = 'Bearer 1|MTNxjmIWicAsJp36AIds8IECqbIpVzMp4fnyL77v99dc9139'
+    config.headers.Authorization = 'Bearer 2|Ywxw2QMavRQohMdAquwbIgUX4IggBIBpScN6WjbT31b27df0'
     return config
   },
   async (error) => Promise.reject(error),

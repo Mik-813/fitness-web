@@ -33,7 +33,7 @@ const dates = computed(() => {
 })
 const consumables = computed(() => endpoints.getConsumablesRequest(currentDate.value).use(undefined))
 
-const weightedProducts = computed(() => endpoints.getWeightedProductsRequest().use([]))
+const weightedProducts = endpoints.getWeightedProductsRequest().use([])
 const isProductLauncherOpen = ref(false)
 
 const transitionName = ref('slide-up')
@@ -64,7 +64,7 @@ async function tryRemoveConsumable(consumable: Consumable){
       customToast.error('Couldn\'t delete product')
     },
     onSuccess: () => {
-      weightedProducts.value.execute()
+      weightedProducts.execute()
     },
   })
 }
@@ -120,8 +120,8 @@ async function tryRereateConsumable(title: string, consumable: Consumable) {
 }
 
 async function tryRemoveWeightedProduct(weightedProduct: WeightedProduct) {
-  weightedProducts.value.mutate({
-    data: popIndentifiable(weightedProduct, weightedProducts.value.data),
+  weightedProducts.mutate({
+    data: popIndentifiable(weightedProduct, weightedProducts.data),
     request: endpoints.removeWeightedProductRequest(weightedProduct.id).invoke,
     onError: () => {
       customToast.error('Couldn\'t delete product')
@@ -162,8 +162,8 @@ function scrollIntoConsumable(title: string) {
 
 function updateWeightedTitles(title: string, oldTitle: string) {
    
-  weightedProducts.value.mutate({
-    data: weightedProducts.value.data.map(
+  weightedProducts.mutate({
+    data: weightedProducts.data.map(
       // eslint-disable-next-line @stylistic/object-property-newline
       obj => obj.title === oldTitle ? { ...obj, title } : obj,
     ), 
@@ -179,15 +179,15 @@ function updateWeightedTitles(title: string, oldTitle: string) {
     />
   </div>
 
-  <div class="sticky top-0 z-30 -mt-4 bg-linear-to-r from-grad-start to-grad-end p-4 flex flex-col gap-4">
+  <div class="sticky top-0 z-30 -mt-4 bg-linear-to-r from-grad-start to-grad-end py-4 px-2 flex flex-col gap-4">
     <Stats
       :stats="[
         { title: 'Calories', formula: (p) => (p.kcal_100g ?? 0) / 100 },
-        // { title: 'Carbs', formula: (p) => (p.carbs_100g ?? 0) / 100 },
-        // { title: 'Protein', formula: (p) => (p.protein_100g ?? 0) / 100 },
-        // { title: 'Fat', formula: (p) => (p.fat_100g ?? 0) / 100 },
-        // { title: 'Sugar', formula: (p) => (p.sugar_100g ?? 0) / 100 },
-        // { title: 'Fiber', formula: (p) => (p.fiber_100g ?? 0) / 100 }
+        { title: 'Carbs', formula: (p) => (p.carbs_100g ?? 0) / 100 },
+        { title: 'Protein', formula: (p) => (p.protein_100g ?? 0) / 100 },
+        { title: 'Fat', formula: (p) => (p.fat_100g ?? 0) / 100 },
+        { title: 'Sugar', formula: (p) => (p.sugar_100g ?? 0) / 100 },
+        { title: 'Fiber', formula: (p) => (p.fiber_100g ?? 0) / 100 }
       ]"
       :consumables="consumables.data"
     />
@@ -288,16 +288,6 @@ function updateWeightedTitles(title: string, oldTitle: string) {
 .slide-right-leave-to {
   opacity: 0;
   transform: translateX(20px);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 
 .slide-up-enter-active,

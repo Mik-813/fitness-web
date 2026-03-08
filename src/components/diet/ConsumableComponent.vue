@@ -52,6 +52,40 @@ const addWeightQuery = ref('')
 
 const errors = ref<ConsumableError>({})
   
+
+const nutrientFields = [
+  {
+    key: 'kcal_100g',
+    label: 'Calories (kcal/100g)',
+    title: 'Calories (kcal)', 
+  },
+  {
+    key: 'carbs_100g',
+    label: 'Carbohydrates (g/100g)',
+    title: 'Carbohydrates (g)', 
+  },
+  {
+    key: 'protein_100g',
+    label: 'Protein (g/100g)',
+    title: 'Protein (g)', 
+  },
+  {
+    key: 'fat_100g',
+    label: 'Fat (g/100g)',
+    title: 'Fat (g)', 
+  },
+  {
+    key: 'sugar_100g',
+    label: 'Sugar (g/100g)',
+    title: 'Sugar (g)', 
+  },
+  {
+    key: 'fiber_100g',
+    label: 'Fiber (g/100g)',
+    title: 'Fiber (g)', 
+  },
+] as const
+  
 async function mutateConsumable(prop: Partial<Consumable>) {
   return await consumable.mutate({
     data: {
@@ -102,12 +136,6 @@ async function handleTitleChange(value: string) {
   props.onTitleUpdate(value, consumable.data.title)
   mutateConsumable({ title: value })
 }
-
-
-function handleKcalChange(value: string) {
-  mutateConsumable({ kcal_100g: Number(value) })
-}
-
 
 function handleConsumptionChange(value: number) {
   mutateConsumable({ consumption_g: value })
@@ -242,11 +270,13 @@ async function overrideExistingProduct() {
           </div>
 
           <CustomInput
-            :value="consumable.data.kcal_100g"
-            :error="errors.kcal_100g"
+            v-for="field in nutrientFields"
+            :key="field.key"
+            :value="consumable.data[field.key]"
+            :error="errors[field.key]"
             type="calculate"
-            label="Calories (kcal/100g)"
-            @input="handleKcalChange"
+            :label="field.label"
+            @input="(v) => mutateConsumable({ [field.key]: Number(v) })"
           />
           
           <div class="flex w-full">
@@ -302,18 +332,21 @@ async function overrideExistingProduct() {
       v-auto-animate
       class="flex flex-col items-center gap-1"
     >
-      <div
-        v-if="isNutriListOpen"
-        class="flex flex-col items-center gap-1 p-4 pt-8 text-white bg-white/5 w-full"
-      >
-        <span class="font-semibold">
-          Calories (kcal)
-        </span>
+      <template v-if="isNutriListOpen">
+        <div 
+          v-for="field in nutrientFields"
+          :key="field.key"
+          class="flex justify-between gap-1 items-center p-5 text-white bg-white/5 w-full"
+        >
+          <span class="font-semibold">
+            {{ field.title }}
+          </span>
 
-        <span class="text-sm">
-          {{ millify(((consumable.data.kcal_100g ?? 0) * (consumable.data.consumption_g ?? 0)) / 100) }}
-        </span>
-      </div>
+          <span class="text-sm">
+            {{ millify(((consumable.data[field.key] ?? 0) * (consumable.data.consumption_g ?? 0)) / 100) }}
+          </span>
+        </div>
+      </template>
       
       <div class="flex justify-center w-full">
         <button

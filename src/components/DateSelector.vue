@@ -55,7 +55,7 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
     <div class="flex items-center gap-1 pt-1 pb-4">
       <button 
         :disabled="isPrevDisabled"
-        class="text-grad-text hover:text-white disabled:opacity-0 transition-colors p-1"
+        class="text-grad-text/70 hover:text-grad-text disabled:opacity-0 transition-colors p-1"
         @click="prevDate"
       >
         <ChevronDownIcon class-name="size-5 rotate-90" />

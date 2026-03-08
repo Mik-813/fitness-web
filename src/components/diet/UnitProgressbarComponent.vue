@@ -8,7 +8,7 @@ const props = defineProps<{
   title: string
 }>()
 
-const currentValue = ref(0) 
+const currentValue = ref(0)
 const maxValue = ref(0) 
 
 watchEffect(() => {
@@ -34,7 +34,7 @@ watchEffect(() => {
 })
 
 const progressPercentage = computed(() => currentValue.value && maxValue.value && (currentValue.value / maxValue.value) * 100)
-const left = computed(() => currentValue.value && maxValue.value && maxValue.value - currentValue.value)
+const left = computed(() => (currentValue.value || currentValue.value === 0) && maxValue.value && maxValue.value - currentValue.value)
 </script>
 
 <template>
@@ -61,15 +61,3 @@ const left = computed(() => currentValue.value && maxValue.value && maxValue.val
     </div>
   </div>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.1s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>
