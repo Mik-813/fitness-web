@@ -4,6 +4,7 @@ import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import { useDateFormat } from '@vueuse/core'
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 import DateIcon from '$src/components/icons/DateIcon.vue'
 
@@ -20,13 +21,16 @@ const sortedDates = computed(() => [...props.availableDates].sort((a, b) => a.ge
 const currentIndex = computed(() => sortedDates.value.findIndex(
   (d) => d.toDateString() === props.modelValue.toDateString(),
 ))
-
+const router = useRouter()
 function updateDateInURL(date: Date) {
   const formatted = useDateFormat(date, 'YYYY-MM-DD').value
-  
-  const url = new URL(window.location.href)
-  url.searchParams.set('date', formatted)
-  window.history.pushState({}, '', url)
+
+  router.push({
+    query: {
+      ...router.currentRoute.value.query,
+      date: formatted,
+    },
+  })
 }
 
 const prevDate = () => {
@@ -52,10 +56,10 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
 
 <template>
   <div class="flex justify-center">
-    <div class="flex items-center gap-1 pt-1 pb-4">
+    <div class="flex items-center gap px-3">
       <button 
         :disabled="isPrevDisabled"
-        class="text-grad-text/70 hover:text-grad-text disabled:opacity-0 transition-colors p-1"
+        class="disabled:text-grad-text/30 text-grad-text/70 hover:text-grad-text transition-colors p-1"
         @click="prevDate"
       >
         <ChevronDownIcon class-name="size-5 rotate-90" />
@@ -72,7 +76,7 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
         <template #trigger>
           <button 
             v-auto-animate 
-            class="normal-nums flex items-center justify-center gap-2 px-2 py-1 bg-grad-text/10 hover:bg-grad-text/15 transition-colors rounded text-white"
+            class="normal-nums flex items-center justify-center gap-2 px-2 py-1 hover:bg-grad-text/10 transition-colors rounded text-white"
           >
             <DateIcon />
 
@@ -85,7 +89,7 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
 
       <button 
         :disabled="isNextDisabled"
-        class="text-grad-text/70 hover:text-grad-text disabled:opacity-0 transition-colors p-1"
+        class="disabled:text-grad-text/30 text-grad-text/70 hover:text-grad-text transition-colors p-1"
         @click="nextDate"
       >
         <ChevronDownIcon class-name="size-5 rotate-270" />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type Component, ref } from 'vue'
+import DateSelector from '$src/components/DateSelector.vue'
 import BoltIcon from '$src/components/icons/BoltIcon.vue'
 import ExportIcon from '$src/components/icons/ExportIcon.vue'
 import ImportIcon from '$src/components/icons/ImportIcon.vue'
@@ -12,6 +13,7 @@ import SwitchButtonGroup from '$src/components/inputs/SwitchButtonGroup.vue'
 import Sidebar from '$src/components/reusable/SidebarComponent.vue'
 import SettingsModal from '$src/components/settings/SettingsModal.vue'
 import router, { paths } from '$src/router'
+import { currentDate, dates } from '$src/states/date'
 import { exportCSV, importCSV } from '$src/utils/service-CSV'
 import { showModal } from '$src/utils/show-modal'
 
@@ -70,11 +72,12 @@ const sidebarItems: SidebarItem[]= [
 
 const isSidebarOpen = ref(false)
 
+
 function getRouteIndex() {
-  const route = window.location.pathname
-  if (route === paths.statistics) return 0
-  if (route === paths.diet) return 1
-  if (route === paths.workout) return 2
+  const _route = window.location.pathname
+  if (_route === paths.statistics) return 0
+  if (_route === paths.diet) return 1
+  if (_route === paths.workout) return 2
   return 0
 }
 </script>
@@ -86,6 +89,11 @@ function getRouteIndex() {
 
       <div>FRM</div>
     </div>
+
+    <DateSelector
+      v-model="currentDate"
+      :available-dates="dates"
+    />
 
     <div class="w-full flex-1" />
 

@@ -1,60 +1,24 @@
+<!-- eslint-disable @stylistic/object-property-newline -->
 <script setup lang="ts">
-import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { useDateFormat } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { endpoints } from '$src/api/endpoints'
-import DateSelector from '$src/components/DateSelector.vue'
 import Consumable from '$src/components/diet/ConsumableComponent.vue'
 import ProductLauncher from '$src/components/diet/ProductLauncher.vue'
 import Stats from '$src/components/diet/StatsComponent.vue'
 import Plus from '$src/components/icons/PlusIcon.vue'
 import TrashIcon from '$src/components/icons/TrashIcon.vue'
 import NoData from '$src/components/NoData.vue'
-import ScrollableTemplate from '$src/components/templates/ScrollableTemplate.vue'
+import PageLayout from '$src/components/templates/PageLayout.vue'
+import { currentDate } from '$src/states/date'
 import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
 import { popIndentifiable } from '$src/utils/pop-indentifiable'
 
-function getDateFromURL() {
-  const urlParams = new URLSearchParams(window.location.search)
-  const dateStr = urlParams.get('date')
-  return dateStr ? new Date(dateStr) : undefined
-}
-const today = new Date(Date.now())
-const currentDate = ref(getDateFromURL() ?? today)
-const datesState = endpoints.getDates({ filter: 'consumables' }).use({})
-const dates = computed(() => {
-  const list = Object.keys(datesState.data).map(dateStr => new Date(dateStr))
-  const hasToday = list.some(d => d.toDateString() === today.toDateString())
-  const hasCurrentDate = list.some(d => d.toDateString() === currentDate.value.toDateString())
-  if (!hasToday) list.push(today)
-  if (currentDate.value.toDateString() != today.toDateString() && !hasCurrentDate)
-    list.push(currentDate.value)
-  return list
-})
 const consumables = computed(() => endpoints.getConsumables(currentDate.value).use(undefined))
 
 const weightedProducts = endpoints.getWeightedProducts().use([])
 const isProductLauncherOpen = ref(false)
-
-const transitionName = ref('slide-up')
-
-function slideLeft() {
-  transitionName.value = 'slide-left'
-}
-
-function slideRight() {
-  transitionName.value = 'slide-right'
-}
-
-watch(currentDate, (newDate, oldDate) => {
-  if (newDate < oldDate) {
-    slideRight()
-  }
-  else {
-    slideLeft()
-  }
-})
 
 async function tryRemoveConsumable(consumable: Consumable){
   if (!consumables.value.data) return
@@ -172,56 +136,19 @@ function updateWeightedTitles(title: string, oldTitle: string) {
 }
 
 const nutrientFieldsConfig = [
-  {
-    key: 'kcal_100g',
-    title: 'Calories',
-    unit: 'kcal',
-    per: '100g',
-  },
-  {
-    key: 'carbs_100g',
-    title: 'Carbohydrates',
-    unit: 'g',
-    per: '100g',
-  },
-  {
-    key: 'protein_100g',
-    title: 'Protein',
-    unit: 'g',
-    per: '100g',
-  },
-  {
-    key: 'fat_100g',
-    title: 'Fat',
-    unit: 'g',
-    per: '100g',
-  },
-  {
-    key: 'sugar_100g',
-    title: 'Sugar',
-    unit: 'g',
-    per: '100g',
-  },
-  {
-    key: 'fiber_100g',
-    title: 'Fiber',
-    unit: 'g',
-    per: '100g',
-  },
+  { key: 'kcal_100g', title: 'Calories', unit: 'kcal', per: '100g' },
+  { key: 'carbs_100g', title: 'Carbohydrates', unit: 'g', per: '100g' },
+  { key: 'protein_100g', title: 'Protein', unit: 'g', per: '100g' },
+  { key: 'fat_100g', title: 'Fat', unit: 'g', per: '100g' },
+  { key: 'sugar_100g', title: 'Sugar', unit: 'g', per: '100g' },
+  { key: 'fiber_100g', title: 'Fiber', unit: 'g', per: '100g' },
 ] as const
 
 const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field => settings.data?.[field.key]))
 </script>
 
 <template>
-  <div class="bg-linear-to-r from-grad-start to-grad-end">
-    <DateSelector
-      v-model="currentDate"
-      :available-dates="dates"
-    />
-  </div>
-
-  <div class="sticky top-0 z-30 -mt-4 bg-linear-to-r from-grad-start to-grad-end py-4 px-2 flex flex-col gap-4">
+  <div class="sticky top-0 z-30 bg-linear-to-r from-grad-start to-grad-end py-4 px-2 flex flex-col gap-4">
     <Stats
       :stats="filteredNutritionData.map(f => ({
         title: f.title,
@@ -231,75 +158,61 @@ const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field =
     />
   </div>
 
-  <div class="grid w-full relative overflow-hidden h-screen z-0">
-    <Transition :name="transitionName">
-      <div
-        v-if="consumables.data !== undefined"
-        :key="currentDate.toISOString()"
-        class="flex flex-col w-full h-full overflow-hidden relative col-start-1 row-start-1 bg-main-bg"
-      >
-        <ScrollableTemplate :disable-scroll="isProductLauncherOpen">
-          <main
-            v-auto-animate
-            class="px-4 py-8 max-w-4xl mx-auto"
-          >
-            <template v-if="consumables.data.length > 0">
-              <div
-                v-for="(consumable, idx) in consumables.data ?? []"
-                :key="consumable.id"
-              >
-                <Consumable
-                  v-model="consumables.data[idx]"
-                  :consumables="consumables.data"
-                  :weighted-products="weightedProducts.data"
-                  :nutrient-fields="filteredNutritionData"
-                  @title-update="updateWeightedTitles"
-                  @weights-update="weightedProducts.execute"
-                  @use-existing-product="tryRereateConsumable"
-                  @remove="tryRemoveConsumable"
-                />
-              </div>
-            </template>
+  <PageLayout :hide="consumables.data === undefined">
+    <template v-if="consumables.data!.length > 0">
+      <Consumable
+        v-for="(consumable, idx) in consumables.data"
+        :key="consumable.id"
+        v-model="consumables.data![idx]"
+        :consumables="consumables.data!"
+        :weighted-products="weightedProducts.data"
+        :nutrient-fields="filteredNutritionData"
+        @title-update="updateWeightedTitles"
+        @weights-update="weightedProducts.execute"
+        @use-existing-product="tryRereateConsumable"
+        @remove="tryRemoveConsumable"
+      />
+    </template>
 
-            <NoData
-              v-else
-              title="No products added"
-              subtitle="Add products to start tracking your nutritions"
-            />
-          </main>
+    <NoData
+      v-else
+      title="No products added"
+      subtitle="Add products to start tracking your nutritions"
+    />
 
-          <div class="h-30" />
-        </ScrollableTemplate>
+    <div class="h-30" />
 
-        <ProductLauncher
-          :visible="isProductLauncherOpen"
-          :weighted-products="weightedProducts.data"
-          :consumables="consumables.data ?? []"
-          @create="tryCreateConsumable"
-          @select="trySelectWeightedProduct"
-          @locate="scrollIntoConsumable"
-          @remove="tryRemoveWeightedProduct"
-          @close="()=> {isProductLauncherOpen=false; consumables.execute()}"
-        />
-      </div>
-    </Transition>
+    <template #overlay>
+      <ProductLauncher
+        :visible="isProductLauncherOpen"
+        :weighted-products="weightedProducts.data"
+        :consumables="consumables.data ?? []"
+        @create="tryCreateConsumable"
+        @select="trySelectWeightedProduct"
+        @locate="scrollIntoConsumable"
+        @remove="tryRemoveWeightedProduct"
+        @close="()=> {isProductLauncherOpen=false; consumables.execute()}"
+      />
+    </template>
   
-    <div class="fixed right-0 bottom-0 m-4">
-      <div class="flex flex-col gap-2">
-        <button
-          class="flex gap-2 shadow-lg shadow-primary/40 bg-linear-to-r from-grad-start to-grad-end transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
-          @click="isProductLauncherOpen = true"
-        >
-          <Plus class="stroke-2" /> Add product
-        </button>
+    <template #controls>
+      <div class="fixed right-0 bottom-0 m-4">
+        <div class="flex flex-col gap-2">
+          <button
+            class="flex gap-2 shadow-lg shadow-primary/40 bg-linear-to-r from-grad-start to-grad-end transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+            @click="isProductLauncherOpen = true"
+          >
+            <Plus class="stroke-2" /> Add product
+          </button>
 
-        <button
-          class="flex gap-2 shadow-lg shadow-red-600/40 bg-linear-to-r from-red-600 to-orange-600 transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
-          @click="tryResetDate"
-        >
-          <TrashIcon class="stroke-2" /> Reset date
-        </button>
+          <button
+            class="flex gap-2 shadow-lg shadow-red-600/40 bg-linear-to-r from-red-600 to-orange-600 transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+            @click="tryResetDate"
+          >
+            <TrashIcon class="stroke-2" /> Reset date
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
+    </template>
+  </PageLayout>
 </template>
