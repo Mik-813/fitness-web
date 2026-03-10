@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import SwitchToggle from '$src/components/inputs/SwitchToggle.vue'
+import CustomInput from '$src/components/inputs/CustomInput.vue'
 import ParameterTemplate from '$src/components/settings/SettingLayout.vue'
 
 defineProps<{
   title: string
   subtitle: string
-  state?: boolean
-  onToggle: (active: boolean) => void
+  state?: string
+  onChange?: (values: string) => void
 }>()
 </script>
 
@@ -15,9 +15,11 @@ defineProps<{
     :title="title"
     :subtitle="subtitle"
   >
-    <SwitchToggle 
-      :active="state"
-      @toggle="onToggle"
+    <CustomInput
+      class="w-32"
+      :value="state"
+      placeholder="PLN, $, etc.."
+      @change="onChange"
     />
   </ParameterTemplate>
 </template>

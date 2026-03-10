@@ -4,11 +4,6 @@ import { ref } from 'vue'
 import UnitProgressbar from '$src/components/diet/UnitProgressbarComponent.vue'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 
-interface Stat {
-  title: string
-  formula: (product: Product) => number
-}
-
 const props = defineProps<{
   stats: Stat[]
   consumables?: Consumable[] 

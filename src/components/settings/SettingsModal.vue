@@ -1,61 +1,74 @@
 <script setup lang="ts">
-import { type Component, computed, inject } from 'vue'
+import { computed } from 'vue'
+import type InputSetting from '$src/components/settings/InputSetting.vue'
+import type MultiChoiceSetting from '$src/components/settings/MultiChoiceSetting.vue'
 import { endpoints } from '$src/api/endpoints'
 import ModalWindow from '$src/components/reusable/ModalWindow.vue'
 import BooleanSetting from '$src/components/settings/BooleanSetting.vue'
-import MultiChoiceSetting from '$src/components/settings/MultiChoiceSetting.vue'
+import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
-
-const settings = inject<any>('settings')
 
 function mutateSettings(prop: Partial<Settings>) {
   settings.mutate({
     data: {
-      ...settings?.data,
+      ...settings.data,
       ...prop,
     },
-    request: endpoints.updateSettings(settings?.data).invoke,
+    request: endpoints.updateSettings(prop).invoke,
     onError: () => {
       customToast.error('Couldn\'t update settings')
     },
   })
 }
 
-type SettingView = 
-  | {
-    component: Component
-    title: string
-    subtitle: string
-    initialState?: boolean
-    onToggled: (isActive: boolean) => void
-  }
-  | {
-    component: Component
-    title: string
-    subtitle: string
-    items: Item[]
-    initialIndex?: number
-    onSelect?: (item: Item) => void 
-  }
+interface BooleanSettingView {
+  component: typeof BooleanSetting
+  title: string
+  subtitle: string
+  state?: boolean
+  onToggle: (active: boolean) => void
+}
 
-const settingsView = computed<SettingView[]>(() => [
+interface MultiChoiceSettingView {
+  component: typeof MultiChoiceSetting
+  title: string
+  subtitle: string
+  state: number
+  items: Item[]
+}
+
+interface InputSettingView {
+  component: typeof InputSetting
+  title: string
+  subtitle: string
+  state?: string
+  onChange?: (values: string) => void
+}
+
+type SettingView = BooleanSettingView | MultiChoiceSettingView | InputSettingView
+
+const settingsView = computed<Array<SettingView>>(() => [
   // {
   //   component: MultiChoiceSetting,
-  //   title: 'Products title conflict',
-  //   subtitle: 'Default behaviour for handling conflicting product titles',
-  //   initialIndex: { 'always_ask': 0, 'always_fetch': 1, 'always_override': 2 }[settings?.data.products_title_conflict_behaviour],
+  //   title: 'Language',
+  //   subtitle: 'Set the preffered language used by the app',
+  //   state: {
+  //     'en': 0,
+  //     'pl': 1,
+  //     'ua': 2, 
+  //   }[settings?.data?.language ?? 'en'],
   //   items: [
   //     {
-  //       title: 'Ask every time',
-  //       onClick: () => mutateSettings({ products_title_conflict_behaviour: 'always_ask' }), 
+  //       title: 'English',
+  //       onClick: () => mutateSettings({ language: 'en' }), 
   //     },
   //     {
-  //       title: 'Use existing product',
-  //       onClick: () => mutateSettings({ products_title_conflict_behaviour: 'always_fetch' }), 
+  //       title: 'Polska',
+  //       onClick: () => mutateSettings({ language: 'pl' }), 
   //     },
   //     {
-  //       title: 'Override the product',
-  //       onClick: () => mutateSettings({ products_title_conflict_behaviour: 'always_override' }), 
+  //       title: 'Українська',
+  //       onClick: () => mutateSettings({ language: 'ua' }), 
   //     },
   //   ],
   // },
@@ -63,44 +76,58 @@ const settingsView = computed<SettingView[]>(() => [
     component: BooleanSetting,
     title: 'Calories',
     subtitle: 'Measure calories',
-    initialState: settings?.data.kcal_100g,
-    onToggled: (isActive) => mutateSettings({ kcal_100g: isActive }),
+    state: settings?.data?.kcal_100g,
+    onToggle: (active) => mutateSettings({ kcal_100g: active }),
   },
   {
     component: BooleanSetting,
     title: 'Carbohydrates',
     subtitle: 'Measure carbohydrates',
-    initialState: settings?.data.carbs_100g,
-    onToggled: (isActive) => mutateSettings({ carbs_100g: isActive }),
+    state: settings?.data?.carbs_100g,
+    onToggle: (active) => mutateSettings({ carbs_100g: active }),
   },
   {
     component: BooleanSetting,
     title: 'Protein',
     subtitle: 'Measure protein',
-    initialState: settings?.data.protein_100g,
-    onToggled: (isActive) => mutateSettings({ protein_100g: isActive }),
+    state: settings?.data?.protein_100g,
+    onToggle: (active) => mutateSettings({ protein_100g: active }),
   },
   {
     component: BooleanSetting,
     title: 'Fat',
     subtitle: 'Measure fat',
-    initialState: settings?.data.fat_100g,
-    onToggled: (isActive) => mutateSettings({ fat_100g: isActive }),
+    state: settings?.data?.fat_100g,
+    onToggle: (active) => mutateSettings({ fat_100g: active }),
   },
   {
     component: BooleanSetting,
     title: 'Sugar',
     subtitle: 'Measure sugar',
-    initialState: settings?.data.sugar_100g,
-    onToggled: (isActive) => mutateSettings({ sugar_100g: isActive }),
+    state: settings?.data?.sugar_100g,
+    onToggle: (active) => mutateSettings({ sugar_100g: active }),
   },
   {
     component: BooleanSetting,
     title: 'Fiber',
     subtitle: 'Measure fiber',
-    initialState: settings?.data.fiber_100g,
-    onToggled: (isActive) => mutateSettings({ fiber_100g: isActive }),
+    state: settings?.data?.fiber_100g,
+    onToggle: (active) => mutateSettings({ fiber_100g: active }),
   },
+  // {
+  //   component: BooleanSetting,
+  //   title: 'Price',
+  //   subtitle: 'Calculate price',
+  //   state: settings?.data?.price,
+  //   onToggle: (active) => mutateSettings({ price: active }),
+  // },
+  // {
+  //   component: InputSetting,
+  //   title: 'Currency',
+  //   subtitle: 'Set currency used by the app',
+  //   state: settings?.data?.currency_sign,
+  //   onChange: (value: string) => mutateSettings({ currency_sign: value }),
+  // },
 ])
 </script>
 

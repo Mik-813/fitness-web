@@ -156,6 +156,7 @@ onUnmounted(() => {
   </div>
 </template>
 
+
 <style scoped>
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -163,14 +164,5 @@ onUnmounted(() => {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

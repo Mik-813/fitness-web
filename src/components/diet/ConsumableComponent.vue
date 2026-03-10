@@ -8,6 +8,7 @@ import ChevronDown from '$src/components/icons/ChevronDownIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
 import Slider from '$src/components/reusable/SliderComponent.vue'
+import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
 
 
@@ -21,10 +22,17 @@ onMounted(() => {
   }
 })
 
+
 const consumableModel = defineModel<Consumable>({ required: true })
 const props = defineProps<{
   consumables: Consumable[]
   weightedProducts: WeightedProduct[]
+  nutrientFields: Array<{
+    key: NutrientKey
+    title: string
+    unit: string
+    per: string
+  }>
   onUseExistingProduct: (title: string, consumable: Consumable) => void
   onWeightsUpdate: () => void
   onTitleUpdate: (title: string, oldTitle: string) => void
@@ -51,40 +59,7 @@ const isNutriListOpen = ref(false)
 const addWeightQuery = ref('')
 
 const errors = ref<ConsumableError>({})
-  
 
-const nutrientFields = [
-  {
-    key: 'kcal_100g',
-    label: 'Calories (kcal/100g)',
-    title: 'Calories (kcal)', 
-  },
-  {
-    key: 'carbs_100g',
-    label: 'Carbohydrates (g/100g)',
-    title: 'Carbohydrates (g)', 
-  },
-  {
-    key: 'protein_100g',
-    label: 'Protein (g/100g)',
-    title: 'Protein (g)', 
-  },
-  {
-    key: 'fat_100g',
-    label: 'Fat (g/100g)',
-    title: 'Fat (g)', 
-  },
-  {
-    key: 'sugar_100g',
-    label: 'Sugar (g/100g)',
-    title: 'Sugar (g)', 
-  },
-  {
-    key: 'fiber_100g',
-    label: 'Fiber (g/100g)',
-    title: 'Fiber (g)', 
-  },
-] as const
   
 async function mutateConsumable(prop: Partial<Consumable>) {
   return await consumable.mutate({
@@ -269,15 +244,19 @@ async function overrideExistingProduct() {
             </span>
           </div>
 
-          <CustomInput
+          <template
             v-for="field in nutrientFields"
             :key="field.key"
-            :value="consumable.data[field.key]"
-            :error="errors[field.key]"
-            type="calculate"
-            :label="field.label"
-            @input="(v) => mutateConsumable({ [field.key]: Number(v) })"
-          />
+          >
+            <CustomInput
+              v-if="settings.data?.[field.key]"
+              :value="consumable.data[field.key]"
+              :error="errors[field.key]"
+              type="calculate"
+              :label="`${field.title} (${field.unit}/${field.per})`"
+              @input="(v) => mutateConsumable({ [field.key]: Number(v) })"
+            />
+          </template>
           
           <div class="flex w-full">
             <CustomInput
@@ -339,7 +318,7 @@ async function overrideExistingProduct() {
           class="flex justify-between gap-1 items-center p-5 text-white bg-white/5 w-full"
         >
           <span class="font-semibold">
-            {{ field.title }}
+            {{ `${field.title} (${field.unit})` }}
           </span>
 
           <span class="text-sm">

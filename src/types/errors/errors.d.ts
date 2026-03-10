@@ -25,5 +25,6 @@ interface ConsumableError extends WeightedProductError {
   consumption_g?: string
   weight_g?: string
   weights_g?: string
+  // price?: string
   needs_recreate?: boolean
 }

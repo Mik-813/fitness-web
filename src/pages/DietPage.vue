@@ -2,7 +2,7 @@
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { useDateFormat } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
-import * as endpoints from '$src/api/endpoints'
+import { endpoints } from '$src/api/endpoints'
 import DateSelector from '$src/components/DateSelector.vue'
 import Consumable from '$src/components/diet/ConsumableComponent.vue'
 import ProductLauncher from '$src/components/diet/ProductLauncher.vue'
@@ -11,6 +11,7 @@ import Plus from '$src/components/icons/PlusIcon.vue'
 import TrashIcon from '$src/components/icons/TrashIcon.vue'
 import NoData from '$src/components/NoData.vue'
 import ScrollableTemplate from '$src/components/templates/ScrollableTemplate.vue'
+import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
 import { popIndentifiable } from '$src/utils/pop-indentifiable'
 
@@ -21,7 +22,7 @@ function getDateFromURL() {
 }
 const today = new Date(Date.now())
 const currentDate = ref(getDateFromURL() ?? today)
-const datesState = endpoints.getDatesRequest({ filter: 'consumables' }).use({})
+const datesState = endpoints.getDates({ filter: 'consumables' }).use({})
 const dates = computed(() => {
   const list = Object.keys(datesState.data).map(dateStr => new Date(dateStr))
   const hasToday = list.some(d => d.toDateString() === today.toDateString())
@@ -31,9 +32,9 @@ const dates = computed(() => {
     list.push(currentDate.value)
   return list
 })
-const consumables = computed(() => endpoints.getConsumablesRequest(currentDate.value).use(undefined))
+const consumables = computed(() => endpoints.getConsumables(currentDate.value).use(undefined))
 
-const weightedProducts = endpoints.getWeightedProductsRequest().use([])
+const weightedProducts = endpoints.getWeightedProducts().use([])
 const isProductLauncherOpen = ref(false)
 
 const transitionName = ref('slide-up')
@@ -59,7 +60,7 @@ async function tryRemoveConsumable(consumable: Consumable){
   if (!consumables.value.data) return
   consumables.value.mutate({
     data: popIndentifiable(consumable, consumables.value.data),
-    request: endpoints.removeConsumableRequest(consumable.id).invoke,
+    request: endpoints.removeConsumable(consumable.id).invoke,
     onError: () => {
       customToast.error('Couldn\'t delete product')
     },
@@ -91,7 +92,7 @@ function tryUpdateConsumable(consumable: Consumable) {
 
   consumables.value.mutate({
     data: consumables.value.data.map(c => c.id === consumable.id ? consumable : c),
-    request: endpoints.updateConsumableRequest(consumable.id, consumable).invoke,
+    request: endpoints.updateConsumable(consumable.id, consumable).invoke,
     onError: () => {
       customToast.error('Couldn\'t update product')
     },
@@ -102,7 +103,7 @@ async function tryCreateConsumable(title: string, weightedProduct?: WeightedProd
   if (!consumables.value.data) return
   
   consumables.value.mutate({
-    request: endpoints.createConsumableRequest({
+    request: endpoints.createConsumable({
       title,
       record_date: useDateFormat(currentDate.value, 'YYYY-MM-DD').value,
       weight_g: weightedProduct?.weight_g,
@@ -115,14 +116,14 @@ async function tryCreateConsumable(title: string, weightedProduct?: WeightedProd
 }
 
 async function tryRereateConsumable(title: string, consumable: Consumable) {
-  await endpoints.removeConsumableRequest(consumable.id).invoke()
+  await endpoints.removeConsumable(consumable.id).invoke()
   tryCreateConsumable(title)
 }
 
 async function tryRemoveWeightedProduct(weightedProduct: WeightedProduct) {
   weightedProducts.mutate({
     data: popIndentifiable(weightedProduct, weightedProducts.data),
-    request: endpoints.removeWeightedProductRequest(weightedProduct.id).invoke,
+    request: endpoints.removeWeightedProduct(weightedProduct.id).invoke,
     onError: () => {
       customToast.error('Couldn\'t delete product')
     },
@@ -132,7 +133,7 @@ async function tryRemoveWeightedProduct(weightedProduct: WeightedProduct) {
 async function tryResetDate() {
   consumables.value.mutate({
     data: [],
-    request: endpoints.removeDatesRequest({
+    request: endpoints.removeDates({
       filter: 'consumables',
       record_date: useDateFormat(currentDate.value, 'YYYY-MM-DD').value,
     }).invoke,
@@ -169,6 +170,47 @@ function updateWeightedTitles(title: string, oldTitle: string) {
     ), 
   })
 }
+
+const nutrientFieldsConfig = [
+  {
+    key: 'kcal_100g',
+    title: 'Calories',
+    unit: 'kcal',
+    per: '100g',
+  },
+  {
+    key: 'carbs_100g',
+    title: 'Carbohydrates',
+    unit: 'g',
+    per: '100g',
+  },
+  {
+    key: 'protein_100g',
+    title: 'Protein',
+    unit: 'g',
+    per: '100g',
+  },
+  {
+    key: 'fat_100g',
+    title: 'Fat',
+    unit: 'g',
+    per: '100g',
+  },
+  {
+    key: 'sugar_100g',
+    title: 'Sugar',
+    unit: 'g',
+    per: '100g',
+  },
+  {
+    key: 'fiber_100g',
+    title: 'Fiber',
+    unit: 'g',
+    per: '100g',
+  },
+] as const
+
+const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field => settings.data?.[field.key]))
 </script>
 
 <template>
@@ -181,14 +223,10 @@ function updateWeightedTitles(title: string, oldTitle: string) {
 
   <div class="sticky top-0 z-30 -mt-4 bg-linear-to-r from-grad-start to-grad-end py-4 px-2 flex flex-col gap-4">
     <Stats
-      :stats="[
-        { title: 'Calories', formula: (p) => (p.kcal_100g ?? 0) / 100 },
-        { title: 'Carbs', formula: (p) => (p.carbs_100g ?? 0) / 100 },
-        { title: 'Protein', formula: (p) => (p.protein_100g ?? 0) / 100 },
-        { title: 'Fat', formula: (p) => (p.fat_100g ?? 0) / 100 },
-        { title: 'Sugar', formula: (p) => (p.sugar_100g ?? 0) / 100 },
-        { title: 'Fiber', formula: (p) => (p.fiber_100g ?? 0) / 100 }
-      ]"
+      :stats="filteredNutritionData.map(f => ({
+        title: f.title,
+        formula: (p: Product) => (p[f.key] ?? 0) / 100,
+      }))"
       :consumables="consumables.data"
     />
   </div>
@@ -214,6 +252,7 @@ function updateWeightedTitles(title: string, oldTitle: string) {
                   v-model="consumables.data[idx]"
                   :consumables="consumables.data"
                   :weighted-products="weightedProducts.data"
+                  :nutrient-fields="filteredNutritionData"
                   @title-update="updateWeightedTitles"
                   @weights-update="weightedProducts.execute"
                   @use-existing-product="tryRereateConsumable"
@@ -224,8 +263,8 @@ function updateWeightedTitles(title: string, oldTitle: string) {
 
             <NoData
               v-else
-              title="No products provided"
-              subtitle="Add some food items to start tracking your calories"
+              title="No products added"
+              subtitle="Add products to start tracking your nutritions"
             />
           </main>
 
@@ -264,44 +303,3 @@ function updateWeightedTitles(title: string, oldTitle: string) {
     </div>
   </div>
 </template>
-
-<style scoped>
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: all 0.2s ease-out;
-}
-
-.slide-left-enter-from {
-  opacity: 0;
-  transform: translateX(20px);
-}
-.slide-left-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-.slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-.slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.2s ease-out;
-}
-
-.slide-up-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-</style>

@@ -85,7 +85,7 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
 
       <button 
         :disabled="isNextDisabled"
-        class="text-grad-text hover:text-white disabled:opacity-0 disabled:cursor-not-allowed transition-colors p-1"
+        class="text-grad-text/70 hover:text-grad-text disabled:opacity-0 transition-colors p-1"
         @click="nextDate"
       >
         <ChevronDownIcon class-name="size-5 rotate-270" />

@@ -21,7 +21,7 @@ api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token')
     token && (config.headers.Authorization = token)
-    config.headers.Authorization = 'Bearer 2|Ywxw2QMavRQohMdAquwbIgUX4IggBIBpScN6WjbT31b27df0'
+    config.headers.Authorization = 'Bearer 1|n68OA0Vcus0CuZmfDTc4uPfk1B2PBs8RYUacoU67a968061a'
     return config
   },
   async (error) => Promise.reject(error),
@@ -78,7 +78,7 @@ export const createRequest = <TRes, TErr, TBody = void>(
     }
   }
   interface Options<TMuteRes, TMuteErr> {
-    data?: TRes | undefined
+    data?: TMuteRes | (TRes | undefined)
     request?: (() => Promise<Response<TMuteRes, TMuteErr>>) | undefined
     onSuccess?: (data: TMuteRes | TRes) => void
     onError?: (error: TMuteErr | TErr) => void

@@ -5,11 +5,10 @@ import ParameterTemplate from '$src/components/settings/SettingLayout.vue'
 defineProps<{
   title: string
   subtitle: string
-  initialIndex?: number
+  state: number
   items: Item<T>[]
+  onSelect: (item: Item<T>) => void
 }>()
-
-const emit = defineEmits<(e: 'select', item: Item<T>) => void>()
 </script>
 
 <template>
@@ -20,8 +19,8 @@ const emit = defineEmits<(e: 'select', item: Item<T>) => void>()
     <div class="flex justify-end flex-2">
       <DropdownButton
         :items="items"
-        :initial-index="initialIndex"
-        @select="emit('select', $event)"
+        :state="state"
+        @select="onSelect"
       />
     </div>
   </ParameterTemplate>

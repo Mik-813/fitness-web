@@ -1,26 +1,24 @@
 <script setup lang="ts" generic="T">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue' 
 import DropdownComponent from '$src/components/reusable/DropdownComponent.vue'
 
 const props = defineProps<{
   items: Item<T>[]
-  initialIndex?: number
+  state: number
 }>()
 
 const emit = defineEmits<(e: 'select', item: Item<T>) => void>()
 
 const isOpen = ref(false)
 const buttonRef = ref<HTMLElement | null>(null)
-const selectedItem = ref<Item<T>>(props.items[props.initialIndex ?? 0])
+const selectedItem = computed<Item<T>>(() => props.items[props.state ?? 0])
 
 const toggle = () => {
   isOpen.value = !isOpen.value
 }
 
 const handleSelect = (item: Item<T>) => {
-  selectedItem.value = item
-  
   if (item.onClick) {
     item.onClick(item)
   }
