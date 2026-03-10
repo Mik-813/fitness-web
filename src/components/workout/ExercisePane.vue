@@ -88,7 +88,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-1 w-full items-stretch bg-white rounded-2xl overflow-hidden mt-4">
+  <div
+    class="flex flex-1 w-full items-stretch bg-white rounded-2xl overflow-hidden mt-4"
+    role="button"
+  >
     <div 
       class="relative shrink-0 max-w-[50%]"
       :style="{ width: contentHeight ? `${contentHeight}px` : 'auto' }"
@@ -104,7 +107,7 @@ onUnmounted(() => {
       ref="contentRef"
       class="flex flex-col py-4 px-4 w-full gap-2 justify-center min-w-0"
     >
-      <h3 class="text-pane-title text-lg font-bold truncate">
+      <h3 class="text-pane-title text-md font-bold truncate">
         {{ exercise.title }}
       </h3>
 
@@ -132,7 +135,7 @@ onUnmounted(() => {
           <span 
             v-for="(tag, index) in tags" 
             :key="index" 
-            class="whitespace-nowrap bg-secondary/20 text-secondary font-bold px-2 py-0.5 rounded-md text-sm lowercase"
+            class="whitespace-nowrap bg-secondary/20 text-secondary font-bold px-2 py-0.5 rounded-md text-[0.8125rem] lowercase"
           >
             {{ tag }}
           </span>
