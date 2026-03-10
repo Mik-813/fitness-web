@@ -2,7 +2,7 @@
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import millify from 'millify'
 import { ref, onMounted, watch } from 'vue'
-import * as endpoints from '$src/api/endpoints'
+import { endpoints } from '$src/api/endpoints'
 import CheckIcon from '$src/components/icons/CheckIcon.vue'
 import ChevronDown from '$src/components/icons/ChevronDownIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
@@ -10,6 +10,7 @@ import CustomInput from '$src/components/inputs/CustomInput.vue'
 import Slider from '$src/components/reusable/SliderComponent.vue'
 import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
+import { isNumber } from '$src/utils/is-number'
 
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -40,7 +41,7 @@ const props = defineProps<{
 }>()
 
 
-const consumable = endpoints.getConsumableRequest(consumableModel.value.id).use(consumableModel.value, false)
+const consumable = endpoints.getConsumable(consumableModel.value.id).use(consumableModel.value, false)
 watch(() => consumable.data, (newValue) => {
   if (consumableModel.value !== newValue) {
     consumableModel.value = newValue
@@ -68,7 +69,7 @@ async function mutateConsumable(prop: Partial<Consumable>) {
       ...prop,
     },
     request: async () => {
-      const res = await endpoints.updateConsumableRequest(
+      const res = await endpoints.updateConsumable(
         consumable.data.id,
         consumable.data,
       ).invoke()
@@ -135,6 +136,7 @@ function handleAddWeightChange(value: string) {
   errors.value.weights_g = ''
   if (!value) return
   const weight = Number(value)
+  if (!isNumber(weight)) return
   if (consumable.data.weights_g.includes(weight)) {
     const errStr = 'Weight already exists'
     errors.value.weights_g = errStr
@@ -148,10 +150,16 @@ function handleAddWeightChange(value: string) {
 }
 
 function updateAddWeight() {
+  const value = Number(addWeightQuery.value)
+  if (!isNumber(value)) {
+    const errStr = 'Weight should be a valid number'
+    errors.value.weights_g = errStr
+    return
+  }
   mutateConsumable({
     weights_g: [
       ...consumable.data.weights_g, 
-      Number(addWeightQuery.value),
+      value,
     ], 
   })
   addWeightQuery.value = ''
@@ -162,7 +170,7 @@ function toggleWrapping() {
 }
 
 async function overrideExistingProduct() {
-  const { error } = await endpoints.updateConsumableRequest(
+  const { error } = await endpoints.updateConsumable(
     consumable.data.id, 
     {
       ...consumable.data,
@@ -254,7 +262,7 @@ async function overrideExistingProduct() {
               :error="errors[field.key]"
               type="calculate"
               :label="`${field.title} (${field.unit}/${field.per})`"
-              @input="(v) => mutateConsumable({ [field.key]: Number(v) })"
+              @input="(v) => isNumber(Number(v)) && mutateConsumable({ [field.key]: Number(v) })"
             />
           </template>
           
@@ -283,7 +291,10 @@ async function overrideExistingProduct() {
             </div>
           </div>
 
-          <div class="flex gap-2 pt-3 px-1">
+          <div
+            v-auto-animate
+            class="flex gap-2 pt-3 px-1"
+          >
             <button
               v-for="weight, index in consumable.data.weights_g"
               :key="index"
