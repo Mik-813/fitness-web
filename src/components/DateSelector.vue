@@ -8,12 +8,13 @@ import { useRouter } from 'vue-router'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 import DateIcon from '$src/components/icons/DateIcon.vue'
 
-interface Props {
+const router = useRouter()
+
+const props = defineProps<{
   modelValue: Date
   availableDates: Date[]
-}
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits<(e: 'update:modelValue', value: Date) => void>()
 
 const sortedDates = computed(() => [...props.availableDates].sort((a, b) => a.getTime() - b.getTime()))
@@ -21,7 +22,6 @@ const sortedDates = computed(() => [...props.availableDates].sort((a, b) => a.ge
 const currentIndex = computed(() => sortedDates.value.findIndex(
   (d) => d.toDateString() === props.modelValue.toDateString(),
 ))
-const router = useRouter()
 function updateDateInURL(date: Date) {
   const formatted = useDateFormat(date, 'YYYY-MM-DD').value
 
@@ -71,7 +71,7 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
         :enable-time-picker="false" 
         auto-apply
         hide-input-icon
-        @update:model-value="(val) => emit('update:modelValue', val)"
+        @update:model-value="(val) => updateDateInURL(new Date(val))"
       >
         <template #trigger>
           <button 
