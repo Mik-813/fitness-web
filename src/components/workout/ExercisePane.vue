@@ -27,6 +27,8 @@ let imageObserver: ResizeObserver | null = null
 const tagsContainerRef = ref<HTMLElement | null>(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
+const isScrolling = ref(false)
+let scrollTimeout: ReturnType<typeof setTimeout> | null = null
 let tagsObserver: ResizeObserver | null = null
 
 const handleWheel = (e: WheelEvent) => {
@@ -46,7 +48,7 @@ const handleWheel = (e: WheelEvent) => {
 }
 
 const checkScroll = () => {
-  if (!tagsContainerRef.value) return
+  if (!tagsContainerRef.value || isScrolling.value) return
   const { scrollLeft, scrollWidth, clientWidth } = tagsContainerRef.value
   
   
@@ -58,11 +60,40 @@ const checkScroll = () => {
 const scrollTags = (direction: 'left' | 'right') => {
   if (!tagsContainerRef.value) return
   const scrollAmount = 150 
+  const { scrollLeft, clientWidth, scrollWidth } = tagsContainerRef.value
+
+  let targetScrollLeft = scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount)
+  targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, scrollWidth - clientWidth))
+
+  isScrolling.value = true
+
+  if (direction === 'right') {
+    if (Math.ceil(targetScrollLeft + clientWidth) >= scrollWidth) {
+      canScrollRight.value = false
+    }
+    canScrollLeft.value = true
+  }
+  else {
+    if (targetScrollLeft <= 1) {
+      canScrollLeft.value = false
+    }
+    canScrollRight.value = true
+  }
   
-  tagsContainerRef.value.scrollBy({
-    left: direction === 'left' ? -scrollAmount : scrollAmount,
+  tagsContainerRef.value.scrollTo({
+    left: targetScrollLeft,
     behavior: 'smooth',
   })
+
+  if (scrollTimeout) clearTimeout(scrollTimeout)
+
+  scrollTimeout = setTimeout(
+    () => {
+      isScrolling.value = false
+      checkScroll()
+    }, 
+    500,
+  )
 }
 
 onMounted(() => {
@@ -84,6 +115,7 @@ onMounted(() => {
 onUnmounted(() => {
   imageObserver?.disconnect()
   tagsObserver?.disconnect()
+  if (scrollTimeout) clearTimeout(scrollTimeout)
 })
 </script>
 
@@ -112,7 +144,7 @@ onUnmounted(() => {
       </h3>
 
       <div class="relative flex items-center w-full">
-        <transition name="fade">
+        <Transition name="fade">
           <div 
             v-show="canScrollLeft"
             class="absolute left-0 top-0 bottom-0 w-12 bg-linear-to-r from-white via-white/90 to-transparent flex items-center justify-start z-10"
@@ -124,7 +156,7 @@ onUnmounted(() => {
               <ChevronDownIcon class-name="size-4 stroke-3 rotate-90" />
             </button>
           </div>
-        </transition>
+        </Transition>
 
         <div 
           ref="tagsContainerRef"
@@ -135,13 +167,13 @@ onUnmounted(() => {
           <span 
             v-for="(tag, index) in tags" 
             :key="index" 
-            class="whitespace-nowrap bg-secondary/20 text-secondary font-bold px-2 py-0.5 rounded-md text-[0.8125rem] lowercase"
+            class="whitespace-nowrap bg-grad-start/20 text-grad-start font-bold px-1.5 py-0.5 rounded-md text-sm lowercase"
           >
             {{ tag }}
           </span>
         </div>
 
-        <transition name="fade">
+        <Transition name="fade">
           <div 
             v-show="canScrollRight"
             class="absolute right-0 top-0 bottom-0 w-12 bg-linear-to-l from-white via-white/90 to-transparent flex items-center justify-end z-10"
@@ -153,7 +185,7 @@ onUnmounted(() => {
               <ChevronDownIcon class-name="size-4 stroke-3 -rotate-90" />
             </button>
           </div>
-        </transition>
+        </Transition>
       </div>
     </div>
   </div>
