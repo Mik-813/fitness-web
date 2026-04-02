@@ -76,7 +76,7 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
         <template #trigger>
           <button 
             v-auto-animate 
-            class="normal-nums flex items-center justify-center gap-2 px-2 py-1 hover:bg-grad-text/10 transition-colors rounded text-white"
+            class="normal-nums flex items-center justify-center gap-2 px-1 py-1 hover:text-grad-text text-grad-text/90 transition-colors rounded"
           >
             <DateIcon />
 

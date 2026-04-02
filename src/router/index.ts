@@ -4,6 +4,7 @@ import ExercisePage from '$src/pages/ExercisePage.vue'
 import MyHome from '$src/pages/MyHome.vue'
 import NotFound from '$src/pages/NotFound.vue'
 import StatisticsChart from '$src/pages/StatisticsChart.vue'
+import WorkoutExercises from '$src/pages/WorkoutExercises.vue'
 import TrainingPage from '$src/pages/WorkoutPage.vue'
 
 export const paths = {
@@ -12,7 +13,7 @@ export const paths = {
   diet: '/diet',
   workout: '/workout',
   exercises: '/workout/exercises',
-  exercise: (id: number | string) => `/workout/exercises/${id}`,
+  exercise: (id: number | string) => `/workout/exercise/${id}`,
   notFound: '/:pathMatch(.*)*',
 }
 
@@ -32,14 +33,16 @@ const routes = [
   {
     path: paths.workout,
     component: TrainingPage, 
-  },
-  {
-    path: paths.exercises,
-    component: TrainingPage, 
-  },
-  {
-    path: paths.exercise(':id'),
-    component: ExercisePage, 
+    children: [
+      {
+        path: '',
+        component: WorkoutExercises,
+      },
+      {
+        path: 'exercise/:id',
+        component: ExercisePage,
+      },
+    ],
   },
   {
     path: paths.notFound,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Component, ref } from 'vue'
+import { type Component, computed, ref } from 'vue'
 import DateSelector from '$src/components/DateSelector.vue'
 import BoltIcon from '$src/components/icons/BoltIcon.vue'
 import ExportIcon from '$src/components/icons/ExportIcon.vue'
@@ -72,7 +72,6 @@ const sidebarItems: SidebarItem[]= [
 
 const isSidebarOpen = ref(false)
 
-
 function getRouteIndex() {
   const _route = window.location.pathname
   if (_route === paths.statistics) return 0
@@ -92,6 +91,7 @@ function getRouteIndex() {
 
     <DateSelector
       v-model="currentDate"
+      class="hidden sm:flex"
       :available-dates="dates"
     />
 
@@ -116,4 +116,11 @@ function getRouteIndex() {
       :items="sidebarItems"
     />
   </header>
+
+  <div class="flex sm:hidden justify-center bg-linear-to-r from-grad-start to-grad-end text-white pb-2 px-4">
+    <DateSelector
+      v-model="currentDate"
+      :available-dates="dates"
+    />
+  </div>
 </template>
