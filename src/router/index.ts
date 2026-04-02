@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DietPage from '$src/pages/DietPage.vue'
+import ExercisePage from '$src/pages/ExercisePage.vue'
 import MyHome from '$src/pages/MyHome.vue'
 import NotFound from '$src/pages/NotFound.vue'
 import StatisticsChart from '$src/pages/StatisticsChart.vue'
@@ -38,7 +39,7 @@ const routes = [
   },
   {
     path: paths.exercise(':id'),
-    component: TrainingPage, 
+    component: ExercisePage, 
   },
   {
     path: paths.notFound,

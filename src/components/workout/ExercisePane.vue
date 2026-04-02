@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
+import { paths } from '$src/router'
 
 const props = defineProps<{ exercise: Exercise, }>()
 
@@ -20,6 +22,7 @@ const tags = computed(() => {
   return generatedTags
 })
 
+const router = useRouter()
 const contentRef = ref<HTMLElement | null>(null)
 const contentHeight = ref(0)
 let imageObserver: ResizeObserver | null = null
@@ -121,8 +124,9 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="flex flex-1 w-full items-stretch bg-white rounded-2xl overflow-hidden mt-4"
+    class="flex flex-1 w-full items-stretch bg-white rounded-2xl overflow-hidden mt-4 cursor-pointer"
     role="button"
+    @click="router.push(paths.exercise(exercise.id))"
   >
     <div 
       class="relative shrink-0 max-w-[50%]"
@@ -151,7 +155,7 @@ onUnmounted(() => {
           >
             <button 
               class="text-gray-400 hover:text-gray-600 focus:outline-none"
-              @click="scrollTags('left')"
+              @click.stop="scrollTags('left')"
             >
               <ChevronDownIcon class-name="size-4 stroke-3 rotate-90" />
             </button>
@@ -180,7 +184,7 @@ onUnmounted(() => {
           >
             <button 
               class="text-gray-400 hover:text-gray-600 focus:outline-none rounded-full p-0.5 -mr-1"
-              @click="scrollTags('right')"
+              @click.stop="scrollTags('right')"
             >
               <ChevronDownIcon class-name="size-4 stroke-3 -rotate-90" />
             </button>
