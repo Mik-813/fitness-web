@@ -1,5 +1,6 @@
 <!-- eslint-disable @stylistic/object-property-newline -->
 <script setup lang="ts">
+import { vAutoAnimate } from '@formkit/auto-animate'
 import { useDateFormat } from '@vueuse/core'
 import { computed, ref } from 'vue'
 import { endpoints } from '$src/api/endpoints'
@@ -160,18 +161,20 @@ const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field =
 
   <PageLayout :hide="consumables.data === undefined">
     <template v-if="consumables.data!.length > 0">
-      <Consumable
-        v-for="(consumable, idx) in consumables.data"
-        :key="consumable.id"
-        v-model="consumables.data![idx]"
-        :consumables="consumables.data!"
-        :weighted-products="weightedProducts.data"
-        :nutrient-fields="filteredNutritionData"
-        @title-update="updateWeightedTitles"
-        @weights-update="weightedProducts.execute"
-        @use-existing-product="tryRereateConsumable"
-        @remove="tryRemoveConsumable"
-      />
+      <div v-auto-animate>
+        <Consumable
+          v-for="(consumable, idx) in consumables.data"
+          :key="consumable.id"
+          v-model="consumables.data![idx]"
+          :consumables="consumables.data!"
+          :weighted-products="weightedProducts.data"
+          :nutrient-fields="filteredNutritionData"
+          @title-update="updateWeightedTitles"
+          @weights-update="weightedProducts.execute"
+          @use-existing-product="tryRereateConsumable"
+          @remove="tryRemoveConsumable"
+        />
+      </div>
     </template>
 
     <NoData
