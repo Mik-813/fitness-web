@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import PageLayout from '$src/components/templates/PageLayout.vue'
 import TimerComponent from '$src/components/workout/TimerComponent.vue'
 import { customToast } from '$src/utils/custom-toast'
 
@@ -17,8 +16,6 @@ const handleRecord = (time: number) => {
       />
     </div>
 
-    <PageLayout>
-      <router-view />
-    </PageLayout>
+    <router-view />
   </div>
 </template>
