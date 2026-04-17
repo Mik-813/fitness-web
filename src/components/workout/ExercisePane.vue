@@ -1,196 +1,175 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
-import { paths } from '$src/router'
+import { watch } from 'vue'
+import { endpoints } from '$src/api/endpoints'
+import ClockIcon from '$src/components/icons/ClockIcon.vue'
+import FireIcon from '$src/components/icons/FireIcon.vue'
+import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
+import Tags from '$src/components/workout/ExerciseTags.vue'
+import SetModal from '$src/components/workout/SetModal.vue'
+import { customToast } from '$src/utils/custom-toast'
+import { showModal } from '$src/utils/show-modal'
 
-const props = defineProps<{ exercise: Exercise, }>()
+const formatRestTime = (seconds: number) => {
+  if (!seconds) return '00:00'
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+}
 
-const tags = computed(() => {
-  const { muscle, secondary_muscle: secondaryMuscle, bodypart } = props.exercise
-  
-  const generatedTags = [muscle]
-  
-  if (secondaryMuscle) {
-    generatedTags.push(secondaryMuscle)
+const exerciseModel = defineModel<Exercise>({ required: true })
+const exercise = endpoints.getExercise(exerciseModel.value.id).use(exerciseModel.value, false)
+watch(() => exercise.data, (newValue) => {
+  if (exerciseModel.value !== newValue) {
+    exerciseModel.value = newValue
   }
-  
-  if (bodypart && bodypart.toLowerCase() !== muscle.toLowerCase()) {
-    generatedTags.push(bodypart)
-  }
-  
-  return generatedTags
 })
 
-const router = useRouter()
-const contentRef = ref<HTMLElement | null>(null)
-const contentHeight = ref(0)
-let imageObserver: ResizeObserver | null = null
-
-const tagsContainerRef = ref<HTMLElement | null>(null)
-const canScrollLeft = ref(false)
-const canScrollRight = ref(false)
-const isScrolling = ref(false)
-let scrollTimeout: ReturnType<typeof setTimeout> | null = null
-let tagsObserver: ResizeObserver | null = null
-
-const handleWheel = (e: WheelEvent) => {
-  if (!tagsContainerRef.value) return
-
-  const { scrollLeft, scrollWidth, clientWidth } = tagsContainerRef.value
-  const isAtLeftEdge = scrollLeft <= 0
-  const isAtRightEdge = Math.ceil(scrollLeft + clientWidth) >= scrollWidth
-
-  if ((e.deltaY < 0 && isAtLeftEdge) || (e.deltaY > 0 && isAtRightEdge)) {
-    return
+watch(exerciseModel, (newValue) => {
+  if (exercise.data !== newValue) {
+    exercise.data = newValue
   }
+})
 
-  e.preventDefault()
-  
-  tagsContainerRef.value.scrollLeft += e.deltaY 
-}
-
-const checkScroll = () => {
-  if (!tagsContainerRef.value || isScrolling.value) return
-  const { scrollLeft, scrollWidth, clientWidth } = tagsContainerRef.value
-  
-  
-  canScrollLeft.value = scrollLeft > 1
-  canScrollRight.value = Math.ceil(scrollLeft + clientWidth) < scrollWidth
-}
-
-
-const scrollTags = (direction: 'left' | 'right') => {
-  if (!tagsContainerRef.value) return
-  const scrollAmount = 150 
-  const { scrollLeft, clientWidth, scrollWidth } = tagsContainerRef.value
-
-  let targetScrollLeft = scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount)
-  targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, scrollWidth - clientWidth))
-
-  isScrolling.value = true
-
-  if (direction === 'right') {
-    if (Math.ceil(targetScrollLeft + clientWidth) >= scrollWidth) {
-      canScrollRight.value = false
-    }
-    canScrollLeft.value = true
+async function mutateExercise(prop: Partial<Exercise>) {
+  const newData = {
+    ...exercise.data,
+    ...prop,
   }
-  else {
-    if (targetScrollLeft <= 1) {
-      canScrollLeft.value = false
-    }
-    canScrollRight.value = true
-  }
-  
-  tagsContainerRef.value.scrollTo({
-    left: targetScrollLeft,
-    behavior: 'smooth',
-  })
-
-  if (scrollTimeout) clearTimeout(scrollTimeout)
-
-  scrollTimeout = setTimeout(
-    () => {
-      isScrolling.value = false
-      checkScroll()
+  return await exercise.mutate({
+    data: newData,
+    request: async () => {
+      const res = await endpoints.updateExercise(
+        exercise.data.id,
+        newData,
+      ).invoke()
+      if (res.error) {
+        customToast.error(res.error.message)
+        // if (res.error.errors) {
+        //   errors.value = res.error.errors
+        // }
+      }
+      return res
     }, 
-    500,
-  )
+    debounce: 500, 
+  })
 }
 
-onMounted(() => {
-  imageObserver = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      contentHeight.value = entry.target.getBoundingClientRect().height
-    }
-  })
-  if (contentRef.value) imageObserver.observe(contentRef.value)
+function removeSet(set: ExSet) {
+  mutateExercise({ sets: exercise.data.sets.filter(s => s !== set) })
+}
 
-  tagsObserver = new ResizeObserver(() => {
-    checkScroll()
+function mutateSet(setIdx: number, prop: Partial<ExSet>) {
+  mutateExercise({
+    sets: [
+      ...exercise.data.sets.filter((_, index) => index !== setIdx), {
+        ...exercise.data.sets[setIdx],
+        ...prop, 
+      },
+    ], 
   })
-  if (tagsContainerRef.value) tagsObserver.observe(tagsContainerRef.value)
-  
-  nextTick(checkScroll)
-})
-
-onUnmounted(() => {
-  imageObserver?.disconnect()
-  tagsObserver?.disconnect()
-  if (scrollTimeout) clearTimeout(scrollTimeout)
-})
+}
 </script>
 
 <template>
-  <div
-    class="flex flex-1 w-full items-stretch bg-white rounded-2xl overflow-hidden mt-4 cursor-pointer"
-    role="button"
-    @click="router.push(paths.exercise(exercise.id))"
-  >
-    <div 
-      class="relative shrink-0 max-w-[50%]"
-      :style="{ width: contentHeight ? `${contentHeight}px` : 'auto' }"
-    >
+  <div class="flex flex-col bg-pane-bg p-4 mt-4 rounded-2xl">
+    <div class="flex flex-1 w-full items-stretch bg-pane-bg cursor-pointer">
       <img 
-        :src="exercise.image_url ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
-        :alt="exercise.title" 
-        class="absolute inset-0 w-full h-full object-cover"
+        :src="exercise.data.image_url ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
+        :alt="exercise.data.title"
+        class="rounded-2xl size-20"
       >
-    </div>
 
-    <div
-      ref="contentRef"
-      class="flex flex-col py-4 px-4 w-full gap-2 justify-center min-w-0"
-    >
-      <h3 class="text-pane-title text-md font-bold truncate">
-        {{ exercise.title }}
-      </h3>
-
-      <div class="relative flex items-center w-full">
-        <Transition name="fade">
-          <div 
-            v-show="canScrollLeft"
-            class="absolute left-0 top-0 bottom-0 w-12 bg-linear-to-r from-white via-white/90 to-transparent flex items-center justify-start z-10"
-          >
-            <button 
-              class="text-gray-400 hover:text-gray-600 focus:outline-none"
-              @click.stop="scrollTags('left')"
-            >
-              <ChevronDownIcon class-name="size-4 stroke-3 rotate-90" />
-            </button>
-          </div>
-        </Transition>
-
-        <div 
-          ref="tagsContainerRef"
-          class="flex gap-2 overflow-x-auto w-full no-scrollbar relative z-0 scroll-smooth"
-          @scroll="checkScroll"
-          @wheel="handleWheel"
-        >
-          <span 
-            v-for="(tag, index) in tags" 
-            :key="index" 
-            class="whitespace-nowrap bg-grad-start/20 text-grad-start font-bold px-1.5 py-0.5 rounded-md text-sm lowercase"
-          >
-            {{ tag }}
-          </span>
-        </div>
-
-        <Transition name="fade">
-          <div 
-            v-show="canScrollRight"
-            class="absolute right-0 top-0 bottom-0 w-12 bg-linear-to-l from-white via-white/90 to-transparent flex items-center justify-end z-10"
-          >
-            <button 
-              class="text-gray-400 hover:text-gray-600 focus:outline-none rounded-full p-0.5 -mr-1"
-              @click.stop="scrollTags('right')"
-            >
-              <ChevronDownIcon class-name="size-4 stroke-3 -rotate-90" />
-            </button>
-          </div>
-        </Transition>
+      <div
+        ref="contentRef"
+        class="flex flex-col px-4 w-full gap-2 justify-center min-w-0"
+      >
+        <h3 class="text-pane-title text-md font-bold truncate">
+          {{ exercise.data.title }}
+        </h3>
+      
+        <Tags :exercise="exercise.data" />
       </div>
+    </div>
+    
+    <div 
+      v-if="exercise.data.sets && exercise.data.sets.length > 0" 
+      class="mt-2 w-full overflow-x-auto no-scrollbar"
+    >
+      <table 
+        class="w-full table-auto border-separate" 
+        style="border-spacing: 0 0.5rem;"
+      >
+        <thead>
+          <tr class="">
+            <th class="text-left font-bold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50 rounded-l-xl">
+              Weight
+            </th>
+
+            <th class="text-left font-bold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
+              Reps
+            </th>
+            
+            <th class="text-left font-bold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
+              Rest
+            </th>
+
+            <th class="px-3 pb-1 w-full text-right bg-main-bg/50 rounded-r-xl" />
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr 
+            v-for="(set, index) in exercise.data.sets" 
+            :key="index" 
+            class="bg-main-bg/50 cursor-pointer"
+            role="button"
+            @click="() => showModal(SetModal, {
+              set,
+              onWeightChange: (weight_kg: number) => mutateSet(index, { weight_kg }),
+              onRepsChange: (reps_number: number) => mutateSet(index, { reps_number }), 
+              onRestChange: (rest_seconds: number) => mutateSet(index, { rest_seconds })
+            })"
+          >
+            <td class="rounded-l-xl px-3 py-2.5 text-left whitespace-nowrap">
+              <button class="inline-flex items-center p-2 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+                <FireIcon />
+                {{ set.weight_kg }}kg
+              </button>
+            </td>
+
+            <td class="px-3 py-2.5 text-left whitespace-nowrap">
+              <button class="inline-flex items-center p-2 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+                <FireIcon />
+                {{ set.weight_kg }}kg
+              </button>
+            </td>
+
+            <td class="px-3 py-2.5 text-left whitespace-nowrap">
+              <button class="inline-flex items-center p-2 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+                <ClockIcon />
+                {{ formatRestTime(set.rest_seconds) }}
+              </button>
+            </td>
+
+            <td class="rounded-r-xl px-3 py-2.5 text-center whitespace-nowrap">
+              <button
+                class="ml-auto block p-2 items-center group"
+                @click.stop="removeSet(set)"
+              >
+                <div
+                  class="
+                    flex content-center items-center justify-center rounded-full
+                    text-gray-300 group-hover:bg-red-400 group-hover:text-red-800
+                    aspect-square cursor-pointer duration-200 transition-colors ease-in-out
+                  "
+                >
+                  <x-mark-icon class="w-4 h-4" />
+                </div>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>

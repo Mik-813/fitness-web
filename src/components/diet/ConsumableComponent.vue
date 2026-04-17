@@ -23,8 +23,6 @@ onMounted(() => {
   }
 })
 
-
-const consumableModel = defineModel<Consumable>({ required: true })
 const props = defineProps<{
   consumables: Consumable[]
   weightedProducts: WeightedProduct[]
@@ -40,7 +38,7 @@ const props = defineProps<{
   onRemove: (consumable: Consumable) => void
 }>()
 
-
+const consumableModel = defineModel<Consumable>({ required: true })
 const consumable = endpoints.getConsumable(consumableModel.value.id).use(consumableModel.value, false)
 watch(() => consumable.data, (newValue) => {
   if (consumableModel.value !== newValue) {
@@ -63,15 +61,17 @@ const errors = ref<ConsumableError>({})
 
   
 async function mutateConsumable(prop: Partial<Consumable>) {
+  // that were not supposed to work, what?
+  const newData = {
+    ...consumable.data,
+    ...prop,
+  }
   return await consumable.mutate({
-    data: {
-      ...consumable.data,
-      ...prop,
-    },
+    data: newData,
     request: async () => {
       const res = await endpoints.updateConsumable(
         consumable.data.id,
-        consumable.data,
+        newData,
       ).invoke()
       if (res.error) {
         customToast.error(res.error.message)
@@ -218,7 +218,10 @@ async function overrideExistingProduct() {
         </button>
       </div>
 
-      <ul v-auto-animate>
+      <ul
+        v-auto-animate
+        class="flex flex-col gap-2"
+      >
         <div class="pt-4" />
         
         <template v-if="!isWrapped">
@@ -232,7 +235,7 @@ async function overrideExistingProduct() {
             />
 
             <span
-              v-if="errors.needs_recreate "
+              v-if="errors.needs_recreate"
               class="text-xs px-1"
             >
               You can either 

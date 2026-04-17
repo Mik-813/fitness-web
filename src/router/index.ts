@@ -5,7 +5,7 @@ import MyHome from '$src/pages/MyHome.vue'
 import NotFound from '$src/pages/NotFound.vue'
 import StatisticsChart from '$src/pages/StatisticsChart.vue'
 import WorkoutExercises from '$src/pages/WorkoutExercises.vue'
-import TrainingPage from '$src/pages/WorkoutPage.vue'
+import WorkoutPage from '$src/pages/WorkoutPage.vue'
 
 export const paths = {
   home: '/',
@@ -32,17 +32,7 @@ const routes = [
   },
   {
     path: paths.workout,
-    component: TrainingPage, 
-    children: [
-      {
-        path: '',
-        component: WorkoutExercises,
-      },
-      {
-        path: 'exercise/:id',
-        component: ExercisePage,
-      },
-    ],
+    component: WorkoutPage, 
   },
   {
     path: paths.notFound,

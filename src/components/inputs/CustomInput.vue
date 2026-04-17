@@ -108,7 +108,7 @@ function handleBlur() {
         ref="inputElement"
         :value="value"
         type="text"
-        class="w-full border bg-white focus:ring-2 focus:border-transparent rounded px-3 py-3 transition-all duration-200 outline-none text-sm"
+        class="w-full border bg-white focus:ring-2 focus:border-transparent rounded-lg px-3 py-3 transition-all duration-200 outline-none text-sm"
         :placeholder="placeholder"
         :class="[
           mergedError 

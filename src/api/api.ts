@@ -1,4 +1,4 @@
-import axios, { type Method, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import axios, { type Method, type AxiosError, type InternalAxiosRequestConfig, type AxiosInstance } from 'axios'
 import { reactive, ref, type UnwrapRef } from 'vue'
 
 
@@ -8,10 +8,18 @@ export const PUT = 'PUT'
 export const DELETE = 'DELETE'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+})
+
+const API_EDB_URL = import.meta.env.VITE_API_EDB_URL
+export const apiExereciseDB = axios.create({
+  baseURL: API_EDB_URL,
+  headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
@@ -21,16 +29,28 @@ api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token')
     token && (config.headers.Authorization = token)
-    config.headers.Authorization = 'Bearer 2|SgbqfenTDowcOoG9VxtCTrcM3SSueIbZUuVpN8ued7bd9d7c'
+    config.headers.Authorization = 'Bearer 1|hardcoded-token-secret'
     return config
   },
   async (error) => Promise.reject(error),
 )
 
+export const createEdbRequest = <TRes, TErr, TBody = void>(
+  method: Method,
+  url: string,
+  body?: TBody,
+) => createRequest<TRes, TErr, TBody>(
+  method,
+  url,
+  body,
+  apiExereciseDB,
+)
+
 export const createRequest = <TRes, TErr, TBody = void>(
   method: Method,
   url: string,
-  body?: TBody, 
+  body?: TBody,
+  axiosInstance?: AxiosInstance,
 ) => {
   interface Response<TMuteRes, TMuteErr> {
     data: TMuteRes | undefined
@@ -48,7 +68,7 @@ export const createRequest = <TRes, TErr, TBody = void>(
     let error: TErr | undefined = undefined
 
     try {
-      const res = await api.request<TRes>({
+      const res = await (axiosInstance ?? api).request<TRes>({
         method,
         url,
         data: overrideBody ?? body,

@@ -1,6 +1,6 @@
 /* eslint-disable @stylistic/key-spacing */
 import { useDateFormat } from '@vueuse/core'
-import { createRequest as createRequest, DELETE, GET, POST, PUT } from '$src/api/api'
+import { createEdbRequest, createRequest as createRequest, DELETE, GET, POST, PUT } from '$src/api/api'
 
 export const endpoints = {
   getExercises: (date?: Date) => {
@@ -45,10 +45,15 @@ export const endpoints = {
   removeConsumable          : (id: number) => createRequest<undefined, ApiError>(DELETE, `/api/consumables/${id}`),
   createExercise            : (body: StoreExerciseRequest) => createRequest<Exercise, ApiError, StoreExerciseRequest>(POST, '/api/exercises', body),
   getExercise               : (id: number) => createRequest<Exercise, ApiError>(GET, `/api/exercises/${id}`),
-  updateExercise            : (id: number, body: UpdateExerciseRequest) => createRequest<Exercise, ApiError, UpdateExerciseRequest>(PUT, `/api/exercises/${id}`, body),
+  updateExercise            : (id: number, body: Exercise) => createRequest<Exercise, ApiError, Exercise>(PUT, `/api/exercises/${id}`, body),
   removeExercise            : (id: number) => createRequest<undefined, ApiError>(DELETE, `/api/exercises/${id}`),
   removeDates               : (body: DateFilters) => createRequest<undefined, ApiError, DateFilters>(DELETE, '/api/dates', body),
   getAdminStats             : () => createRequest<MessageResponse, ApiError>(GET, '/api/admin/stats'),
   getSettings               : () => createRequest<Settings, ApiError>(GET, '/api/settings'),
   updateSettings            : (body: Partial<Settings>) => createRequest<Settings, ApiError, Partial<Settings>>(PUT, '/api/settings', body),
+}
+
+export const edbApi = {
+  getExercise               : (id: number) => createEdbRequest<Exercise, ApiError>(GET, `/api/v1/exercises/${id}`),
+  searchExercises           : (query: string) => createEdbRequest<Exercise[], ApiError>(GET, `/api/v1/exercises/search?query=${query}`),
 }
