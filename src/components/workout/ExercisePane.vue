@@ -18,6 +18,8 @@ const formatRestTime = (seconds: number) => {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
 
+const props = defineProps<{ onRemove: (exercise: Exercise) => void, }>()
+
 const exerciseModel = defineModel<Exercise>({ required: true })
 const exercise = endpoints.getExercise(exerciseModel.value.id).use(exerciseModel.value, false)
 watch(() => exercise.data, (newValue) => {
@@ -166,6 +168,15 @@ function addSet() {
         </h3>
       
         <Tags :exercise="exercise.data" />
+      </div>
+      
+      <div>
+        <button
+          class="text-gray-500 px-1"
+          @click="onRemove(exercise.data)"
+        >
+          <XMarkIcon />
+        </button>
       </div>
     </div>
     

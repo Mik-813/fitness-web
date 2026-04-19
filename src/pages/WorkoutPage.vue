@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { computed } from 'vue'
 import { endpoints } from '$src/api/endpoints'
 import NoData from '$src/components/NoData.vue'
@@ -7,11 +8,24 @@ import ExercisePane from '$src/components/workout/ExercisePane.vue'
 import TimerComponent from '$src/components/workout/TimerComponent.vue'
 import { currentDate } from '$src/states/date'
 import { customToast } from '$src/utils/custom-toast'
+import { popElementById } from '$src/utils/pop-indentifiable'
+
 
 const handleRecord = (time: number) => {
   customToast.error(time.toString())
 }
 const exercises = computed(() => endpoints.getExercises(currentDate.value).use(undefined))
+
+async function tryRemoveExercise(exercise: Exercise){
+  if (!exercises.value.data) return
+  exercises.value.mutate({
+    data: popElementById(exercise, exercises.value.data),
+    request: endpoints.removeExercise(exercise.id).invoke,
+    onError: () => {
+      customToast.error('Couldn\'t delete exercise')
+    },
+  })
+}
 </script>
 
 <template>
@@ -32,6 +46,7 @@ const exercises = computed(() => endpoints.getExercises(currentDate.value).use(u
           v-for="(exercise, idx) in exercises.data"
           :key="exercise.id"
           v-model="exercises.data![idx]"
+          @remove="tryRemoveExercise"
         />
       </div>
 

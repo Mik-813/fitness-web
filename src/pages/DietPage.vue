@@ -14,7 +14,7 @@ import PageLayout from '$src/components/templates/PageLayout.vue'
 import { currentDate } from '$src/states/date'
 import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
-import { popIndentifiable } from '$src/utils/pop-indentifiable'
+import { popElementById } from '$src/utils/pop-indentifiable'
 
 const consumables = computed(() => endpoints.getConsumables(currentDate.value).use(undefined))
 
@@ -24,7 +24,7 @@ const isProductLauncherOpen = ref(false)
 async function tryRemoveConsumable(consumable: Consumable){
   if (!consumables.value.data) return
   consumables.value.mutate({
-    data: popIndentifiable(consumable, consumables.value.data),
+    data: popElementById(consumable, consumables.value.data),
     request: endpoints.removeConsumable(consumable.id).invoke,
     onError: () => {
       customToast.error('Couldn\'t delete product')
@@ -87,7 +87,7 @@ async function tryRereateConsumable(title: string, consumable: Consumable) {
 
 async function tryRemoveWeightedProduct(weightedProduct: WeightedProduct) {
   weightedProducts.mutate({
-    data: popIndentifiable(weightedProduct, weightedProducts.data),
+    data: popElementById(weightedProduct, weightedProducts.data),
     request: endpoints.removeWeightedProduct(weightedProduct.id).invoke,
     onError: () => {
       customToast.error('Couldn\'t delete product')

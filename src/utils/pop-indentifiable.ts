@@ -1,4 +1,4 @@
-export function popIndentifiable<T extends Identifiable>(
+export function popElementById<T extends Identifiable>(
   { id, key }: {
     id?: number
     key?: number
