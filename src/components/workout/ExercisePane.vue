@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { watch, ref } from 'vue'
+import HandleIcon from '../icons/HandleIcon.vue'
 import { endpoints } from '$src/api/endpoints'
 import ClockIcon from '$src/components/icons/ClockIcon.vue'
 import FireIcon from '$src/components/icons/FireIcon.vue'
+import PlusIcon from '$src/components/icons/PlusIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 import Tags from '$src/components/workout/ExerciseTags.vue'
 import SetModal from '$src/components/workout/SetModal.vue'
@@ -44,9 +46,6 @@ async function mutateExercise(prop: Partial<Exercise>) {
       ).invoke()
       if (res.error) {
         customToast.error(res.error.message)
-        // if (res.error.errors) {
-        //   errors.value = res.error.errors
-        // }
       }
       return res
     }, 
@@ -59,14 +58,93 @@ function removeSet(set: ExSet) {
 }
 
 function mutateSet(setIdx: number, prop: Partial<ExSet>) {
-  mutateExercise({
-    sets: [
-      ...exercise.data.sets.filter((_, index) => index !== setIdx), {
-        ...exercise.data.sets[setIdx],
-        ...prop, 
-      },
-    ], 
-  })
+  const newSets = [...exercise.data.sets]
+  newSets[setIdx] = {
+    ...newSets[setIdx],
+    ...prop,
+  }
+  mutateExercise({ sets: newSets })
+}
+
+const draggableRowIndex = ref<number | null>(null)
+const draggedIndex = ref<number | null>(null)
+const hideDragged = ref(false)
+const isSwapping = ref(false)
+
+function setMoved(fromIndex: number, toIndex: number) {
+  if (isNaN(fromIndex) || fromIndex === toIndex) return
+  
+  const newSets = [...exercise.data.sets]
+  const [moved] = newSets.splice(fromIndex, 1)
+  newSets.splice(toIndex, 0, moved)
+  
+  mutateExercise({ sets: newSets })
+}
+
+function onDragStart(e: DragEvent, index: number) {
+  draggedIndex.value = index
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', index.toString())
+  }
+  setTimeout(
+    () => {
+      hideDragged.value = true
+    }, 
+    0,
+  )
+}
+
+function onDragEnter(e: DragEvent, index: number) {
+  if (draggedIndex.value === null || draggedIndex.value === index) return
+  if (isSwapping.value) return
+
+  setMoved(draggedIndex.value, index)
+  draggedIndex.value = index
+
+  isSwapping.value = true
+  setTimeout(
+    () => {
+      isSwapping.value = false
+    }, 
+    300,
+  )
+}
+
+function onDragEnd() {
+  draggableRowIndex.value = null
+  draggedIndex.value = null
+  hideDragged.value = false
+  isSwapping.value = false
+}
+
+function openSetModal(set: ExSet, index: number, initialFocus?: 'weight' | 'reps' | 'rest') {
+  showModal(
+    SetModal, 
+    {
+      set,
+      initialFocus,
+      onWeightChange: (weight_kg: number) => mutateSet(index, { weight_kg }),
+      onRepsChange: (reps_number: number) => mutateSet(index, { reps_number }), 
+      onRestChange: (rest_seconds: number) => mutateSet(index, { rest_seconds }),
+    },
+  )
+}
+
+function addSet() {
+  const sets = exercise.data.sets || []
+  const lastSet = sets[sets.length - 1]
+  
+  const newSet = {
+    id: Date.now(),
+    weight_kg: lastSet ? lastSet.weight_kg : 0,
+    reps_number: lastSet ? lastSet.reps_number : 0,
+    rest_seconds: lastSet ? lastSet.rest_seconds : 0,
+  } as ExSet
+
+  const newIndex = sets.length
+  mutateExercise({ sets: [...sets, newSet] })
+  openSetModal(newSet, newIndex, 'weight')
 }
 </script>
 
@@ -101,7 +179,9 @@ function mutateSet(setIdx: number, prop: Partial<ExSet>) {
       >
         <thead>
           <tr class="">
-            <th class="text-left font-bold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50 rounded-l-xl">
+            <th class="p-2 px-3 w-max bg-main-bg/50 rounded-l-xl" />
+
+            <th class="text-left font-bold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
               Weight
             </th>
 
@@ -117,35 +197,64 @@ function mutateSet(setIdx: number, prop: Partial<ExSet>) {
           </tr>
         </thead>
 
-        <tbody>
+        <TransitionGroup
+          tag="tbody"
+          name="list"
+        >
           <tr 
             v-for="(set, index) in exercise.data.sets" 
-            :key="index" 
-            class="bg-main-bg/50 cursor-pointer"
+            :key="set.id" 
+            :class="[
+              'cursor-pointer',
+              (hideDragged && draggedIndex === index) ? 'opacity-0' : 'bg-main-bg/50'
+            ]"
             role="button"
-            @click="() => showModal(SetModal, {
-              set,
-              onWeightChange: (weight_kg: number) => mutateSet(index, { weight_kg }),
-              onRepsChange: (reps_number: number) => mutateSet(index, { reps_number }), 
-              onRestChange: (rest_seconds: number) => mutateSet(index, { rest_seconds })
-            })"
+            :draggable="draggableRowIndex === index"
+            @dragstart="(e) => onDragStart(e, index)"
+            @dragenter.prevent="(e) => onDragEnter(e, index)"
+            @dragend="onDragEnd"
+            @dragover.prevent
+            @drop="onDragEnd"
+            @click="() => openSetModal(set, index)"
           >
-            <td class="rounded-l-xl px-3 py-2.5 text-left whitespace-nowrap">
-              <button class="inline-flex items-center p-2 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+            <td class="rounded-l-xl px-2 py-2.5 text-center whitespace-nowrap">
+              <div 
+                class="cursor-grab active:cursor-grabbing text-gray-400 flex items-center justify-center p-1"
+                @mouseenter="draggableRowIndex = index"
+                @mouseleave="draggableRowIndex = null"
+                @touchstart="draggableRowIndex = index"
+                @touchend="draggableRowIndex = null"
+                @click.stop
+              >
+                <HandleIcon />
+              </div>
+            </td>
+
+            <td
+              class="px-3 py-2.5 text-left whitespace-nowrap"
+              @click.stop="openSetModal(set, index, 'weight')"
+            >
+              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <FireIcon />
                 {{ set.weight_kg }}kg
               </button>
             </td>
 
-            <td class="px-3 py-2.5 text-left whitespace-nowrap">
-              <button class="inline-flex items-center p-2 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+            <td
+              class="px-3 py-2.5 text-left whitespace-nowrap"
+              @click.stop="openSetModal(set, index, 'reps')"
+            >
+              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <FireIcon />
-                {{ set.weight_kg }}kg
+                {{ set.reps_number }}
               </button>
             </td>
 
-            <td class="px-3 py-2.5 text-left whitespace-nowrap">
-              <button class="inline-flex items-center p-2 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+            <td
+              class="px-3 py-2.5 text-left whitespace-nowrap"
+              @click.stop="openSetModal(set, index, 'rest')"
+            >
+              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <ClockIcon />
                 {{ formatRestTime(set.rest_seconds) }}
               </button>
@@ -168,9 +277,17 @@ function mutateSet(setIdx: number, prop: Partial<ExSet>) {
               </button>
             </td>
           </tr>
-        </tbody>
+        </TransitionGroup>
       </table>
     </div>
+    
+    <button
+      class="mt-2 w-full flex items-center justify-center pl-3 pr-4 py-2.5 gap-2 text-sm rounded-xl bg-linear-120 from-grad-start to-grad-end text-grad-text font-bold"
+      @click="addSet"
+    >
+      <PlusIcon class-name="size-5 stroke-2" />
+      Add set
+    </button>
   </div>
 </template>
 
@@ -182,5 +299,9 @@ function mutateSet(setIdx: number, prop: Partial<ExSet>) {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.list-move {
+  transition: transform 0.3s ease;
 }
 </style>

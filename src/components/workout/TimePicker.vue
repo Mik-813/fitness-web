@@ -2,17 +2,31 @@
 import { ref } from 'vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
 
-const props = defineProps<{ onChange: (seconds: number) => void, }>()
+const props = defineProps<{
+  value: number
+  onChange: (seconds: number) => void
+}>()
 
-const minutes = ref(0)
-const seconds = ref(0)
+const seconds = ref(props.value % 60)
+const minutes = ref(props.value / 60 >> 0)
 
 const timeChanged = () => {
-  if (minutes.value < 0) minutes.value = 0
-  if (seconds.value < 0) seconds.value = 0
-  if (seconds.value > 59) seconds.value = 59
+  let mins = 0
+  let secs = 0
 
-  props.onChange(minutes.value * 60 + seconds.value)
+  try {
+    mins = Number(minutes.value)
+    secs = Number(seconds.value)
+  }
+  catch {
+    return 
+  }
+
+  if (mins < 0) mins = 0
+  if (secs < 0) secs = 0
+  if (secs > 59) secs = 59
+
+  props.onChange(mins * 60 + secs)
 }
 </script>
 
