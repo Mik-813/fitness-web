@@ -136,7 +136,7 @@ onUnmounted(() => {
       <span 
         v-for="(tag, index) in tags" 
         :key="index" 
-        class="whitespace-nowrap bg-grad-start/20 text-grad-start font-bold px-1.5 py-0.5 rounded-md text-sm lowercase"
+        class="whitespace-nowrap bg-grad-start/20 text-grad-start font-semibold px-1.5 py-0.5 rounded-md text-sm lowercase"
       >
         {{ tag }}
       </span>

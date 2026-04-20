@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch, ref } from 'vue'
+import ChevronDownIcon from '../icons/ChevronDownIcon.vue'
 import HandleIcon from '../icons/HandleIcon.vue'
 import { endpoints } from '$src/api/endpoints'
 import ClockIcon from '$src/components/icons/ClockIcon.vue'
@@ -139,51 +140,111 @@ function addSet() {
   
   const newSet = {
     id: Date.now(),
-    weight_kg: lastSet ? lastSet.weight_kg : 0,
-    reps_number: lastSet ? lastSet.reps_number : 0,
-    rest_seconds: lastSet ? lastSet.rest_seconds : 0,
+    weight_kg: lastSet?.weight_kg ?? 0,
+    reps_number: lastSet?.reps_number ?? 0,
+    rest_seconds: lastSet?.rest_seconds ?? 0,
   } as ExSet
 
   const newIndex = sets.length
   mutateExercise({ sets: [...sets, newSet] })
   openSetModal(newSet, newIndex, 'weight')
 }
+
+const isWrapped = ref(true)
+function toggleWrapping() {
+  if (!document.startViewTransition) {
+    isWrapped.value = !isWrapped.value
+    return
+  }
+  document.startViewTransition(() => {
+    isWrapped.value = !isWrapped.value
+  })
+}
 </script>
 
 <template>
   <div class="flex flex-col bg-pane-bg p-4 mt-4 rounded-2xl">
-    <div class="flex flex-1 w-full items-stretch bg-pane-bg cursor-pointer">
+    <div class="flex items-center justify-between gap-2">
+      <button
+        class="text-gray-500"
+        :style="{ viewTransitionName: `exercise-toggle-${exercise.data.id}` }"
+        @click="toggleWrapping"
+      >
+        <div :style="{ rotate: isWrapped ? '-90deg' : '0deg', transition: 'rotate 0.2s' }">
+          <ChevronDownIcon class="size-5" />
+        </div>
+      </button>
+      
       <img 
+        v-if="isWrapped"
         :src="exercise.data.image_url ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
         :alt="exercise.data.title"
         class="rounded-2xl size-20"
+        :style="{ viewTransitionName: `exercise-img-${exercise.data.id}` }"
       >
 
-      <div
-        ref="contentRef"
-        class="flex flex-col px-4 w-full gap-2 justify-center min-w-0"
-      >
-        <h3 class="text-pane-title text-md font-bold truncate">
-          {{ exercise.data.title }}
-        </h3>
-      
-        <Tags :exercise="exercise.data" />
-      </div>
-      
-      <div>
-        <button
-          class="text-gray-500 px-1"
-          @click="onRemove(exercise.data)"
+      <div class="flex flex-col gap-2 px-2">
+        <span
+          class="font-semibold w-fit"
+          :class="exercise.data.title ? 'text-gray-800' : 'text-gray-400'"
+          :style="{ viewTransitionName: `exercise-title-${exercise.data.id}` }"
         >
-          <XMarkIcon />
-        </button>
+          {{ exercise.data.title || "(Empty title)" }}
+        </span>
+
+        <Tags
+          v-if="isWrapped"
+          :exercise="exercise.data"
+        />
       </div>
+      
+      <button
+        class="sm:ml-auto text-gray-500 px-1 self-start"
+        @click="onRemove(exercise.data)"
+      >
+        <XMarkIcon class="h-full" />
+      </button>
     </div>
     
+    <div
+      v-if="!isWrapped"
+      class="flex flex-col sm:flex-row gap-4 my-3"
+    >
+      <img 
+        :src="exercise.data.image_url ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
+        :alt="exercise.data.title"
+        class="rounded-2xl w-full max-w-72 aspect-square object-cover self-center sm:self-start shrink-0"
+        :style="{ viewTransitionName: `exercise-img-${exercise.data.id}` }"
+      >
+
+      <div class="flex flex-col gap-2 flex-1">
+        <span class="text-sm font-semibold text-gray-800">
+          Instructions
+        </span>
+
+        <div class="text-sm">
+          Some unimplemented instructions
+        </div>
+
+        <span class="text-sm font-semibold text-gray-800">
+          Tags
+        </span>
+
+        <Tags :exercise="exercise.data" />
+      </div>
+    </div>
+
     <div 
       v-if="exercise.data.sets && exercise.data.sets.length > 0" 
       class="mt-2 w-full overflow-x-auto no-scrollbar"
     >
+      <span
+        v-if="!isWrapped"
+        class="text-sm font-semibold text-gray-800"
+      >
+        Sets
+      </span>
+
       <table 
         class="w-full table-auto border-separate" 
         style="border-spacing: 0 0.5rem;"
@@ -192,15 +253,15 @@ function addSet() {
           <tr class="">
             <th class="p-2 px-3 w-max bg-main-bg/50 rounded-l-xl" />
 
-            <th class="text-left font-bold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
+            <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
               Weight
             </th>
 
-            <th class="text-left font-bold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
+            <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
               Reps
             </th>
             
-            <th class="text-left font-bold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
+            <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
               Rest
             </th>
 
@@ -245,7 +306,7 @@ function addSet() {
               class="px-3 py-2.5 text-left whitespace-nowrap"
               @click.stop="openSetModal(set, index, 'weight')"
             >
-              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <FireIcon />
                 {{ set.weight_kg }}kg
               </button>
@@ -255,7 +316,7 @@ function addSet() {
               class="px-3 py-2.5 text-left whitespace-nowrap"
               @click.stop="openSetModal(set, index, 'reps')"
             >
-              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <FireIcon />
                 {{ set.reps_number }}
               </button>
@@ -265,7 +326,7 @@ function addSet() {
               class="px-3 py-2.5 text-left whitespace-nowrap"
               @click.stop="openSetModal(set, index, 'rest')"
             >
-              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-bold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <ClockIcon />
                 {{ formatRestTime(set.rest_seconds) }}
               </button>

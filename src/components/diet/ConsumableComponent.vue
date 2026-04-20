@@ -186,7 +186,7 @@ async function overrideExistingProduct() {
 
 <template>
   <div
-    class="relative bg-linear-to-r from-grad-start to-grad-end rounded-xl ring-0 transition-all mb-4"
+    class="relative bg-linear-to-r from-grad-start to-grad-end rounded-xl ring-0 transition-all mt-4"
     :data-hot-product-title="consumable.data.title"
   >
     <div

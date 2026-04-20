@@ -33,7 +33,7 @@ watch(currentDate, (newDate, oldDate) => {
         class="flex flex-col w-full h-full overflow-hidden relative col-start-1 row-start-1 bg-main-bg"
       >
         <ScrollableTemplate>
-          <main class="px-4 py-4 max-w-4xl mx-auto">
+          <main class="p-4 max-w-4xl mx-auto">
             <slot />
           </main>
         </ScrollableTemplate>
