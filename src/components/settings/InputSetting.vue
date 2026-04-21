@@ -6,7 +6,8 @@ defineProps<{
   title: string
   subtitle: string
   state?: string
-  onChange?: (values: string) => void
+  placeholder?: string
+  onChange?: (value: string) => void
 }>()
 </script>
 
@@ -18,7 +19,7 @@ defineProps<{
     <CustomInput
       class="w-32"
       :value="state"
-      placeholder="PLN, $, etc.."
+      :placeholder
       @change="onChange"
     />
   </ParameterTemplate>

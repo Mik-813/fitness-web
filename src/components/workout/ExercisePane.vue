@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { watch, ref } from 'vue'
-import ChevronDownIcon from '../icons/ChevronDownIcon.vue'
-import HandleIcon from '../icons/HandleIcon.vue'
+import TimeModal from './TimeModal.vue'
 import { endpoints } from '$src/api/endpoints'
+import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 import ClockIcon from '$src/components/icons/ClockIcon.vue'
 import FireIcon from '$src/components/icons/FireIcon.vue'
+import HandleIcon from '$src/components/icons/HandleIcon.vue'
 import PlusIcon from '$src/components/icons/PlusIcon.vue'
+import ScalesIcon from '$src/components/icons/ScalesIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 import Tags from '$src/components/workout/ExerciseTags.vue'
 import SetModal from '$src/components/workout/SetModal.vue'
+import { settings } from '$src/states/state'
+import { startTimer, stopTimer, timerRunning, timerSeconds } from '$src/states/timer'
 import { customToast } from '$src/utils/custom-toast'
 import { showModal } from '$src/utils/show-modal'
 
@@ -121,18 +125,32 @@ function onDragEnd() {
   isSwapping.value = false
 }
 
-function openSetModal(set: ExSet, index: number, initialFocus?: 'weight' | 'reps' | 'rest') {
+function openSetModal(set: ExSet, index: number, initialFocus?: 'weight' | 'reps') {
   showModal(
     SetModal, 
     {
       set,
       initialFocus,
       onWeightChange: (weight_kg: number) => mutateSet(index, { weight_kg }),
-      onRepsChange: (reps_number: number) => mutateSet(index, { reps_number }), 
+      onRepsChange: (reps_number: number) => mutateSet(index, { reps_number }),
+    },
+  )
+}
+
+function openTimeModal(set: ExSet, index: number) {
+  let seconds = set.rest_seconds ?? 0
+  if (seconds === 0 && settings.data?.auto_timer) {
+    seconds = timerSeconds.value
+  }
+  showModal(
+    TimeModal, 
+    {
+      seconds,
       onRestChange: (rest_seconds: number) => mutateSet(index, { rest_seconds }),
     },
   )
 }
+
 
 function addSet() {
   const sets = exercise.data.sets || []
@@ -142,12 +160,14 @@ function addSet() {
     id: Date.now(),
     weight_kg: lastSet?.weight_kg ?? 0,
     reps_number: lastSet?.reps_number ?? 0,
-    rest_seconds: lastSet?.rest_seconds ?? 0,
+    rest_seconds: 0,
   } as ExSet
 
   const newIndex = sets.length
   mutateExercise({ sets: [...sets, newSet] })
   openSetModal(newSet, newIndex, 'weight')
+
+  settings.data?.auto_timer && startTimer()
 }
 
 const isWrapped = ref(true)
@@ -257,7 +277,7 @@ function toggleWrapping() {
               Weight
             </th>
 
-            <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
+            <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-full bg-main-bg/50">
               Reps
             </th>
             
@@ -265,7 +285,7 @@ function toggleWrapping() {
               Rest
             </th>
 
-            <th class="px-3 pb-1 w-full text-right bg-main-bg/50 rounded-r-xl" />
+            <th class="px-3 pb-1 w-max text-right bg-main-bg/50 rounded-r-xl" />
           </tr>
         </thead>
 
@@ -307,7 +327,7 @@ function toggleWrapping() {
               @click.stop="openSetModal(set, index, 'weight')"
             >
               <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
-                <FireIcon />
+                <ScalesIcon />
                 {{ set.weight_kg }}kg
               </button>
             </td>
@@ -324,11 +344,18 @@ function toggleWrapping() {
 
             <td
               class="px-3 py-2.5 text-left whitespace-nowrap"
-              @click.stop="openSetModal(set, index, 'rest')"
+              @click.stop="openTimeModal(set, index)"
             >
-              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+              <button class="tabular-nums tracking-tight flex items-center w-full justify-between pl-2 pr-3 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <ClockIcon />
-                {{ formatRestTime(set.rest_seconds) }}
+
+                <span v-if="set.rest_seconds">
+                  {{ formatRestTime(set.rest_seconds) }}
+                </span>
+
+                <span v-else>
+                  --:--
+                </span>
               </button>
             </td>
 

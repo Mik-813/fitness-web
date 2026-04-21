@@ -7,6 +7,7 @@ import PageLayout from '$src/components/templates/PageLayout.vue'
 import ExercisePane from '$src/components/workout/ExercisePane.vue'
 import TimerComponent from '$src/components/workout/TimerComponent.vue'
 import { currentDate } from '$src/states/date'
+import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
 import { popElementById } from '$src/utils/pop-indentifiable'
 
@@ -31,10 +32,7 @@ async function tryRemoveExercise(exercise: Exercise){
 <template>
   <div class="flex flex-col h-screen w-full relative overflow-hidden">
     <div class="z-10 shrink-0">
-      <TimerComponent
-        :limit="20"
-        @record="handleRecord"
-      />
+      <TimerComponent :limit="settings.data?.rest_limit ?? 0" />
     </div>
     
     <PageLayout :hide="exercises.data === undefined">

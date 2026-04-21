@@ -2,14 +2,12 @@
 import { ref, onMounted } from 'vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
 import ModalWindow from '$src/components/reusable/ModalWindow.vue'
-import TimePicker from '$src/components/workout/TimePicker.vue'
 
 const props = defineProps<{
   set: ExSet
   onWeightChange: (weight_kg: number) => void
   onRepsChange: (reps: number) => void
-  onRestChange: (rest_seconds: number) => void
-  initialFocus?: 'weight' | 'reps' | 'rest'
+  initialFocus?: 'weight' | 'reps'
 }>()
 
 const containerRef = ref<HTMLElement | null>(null)
@@ -24,7 +22,6 @@ onMounted(() => {
 
       if (props.initialFocus === 'weight') targetInput = inputs[0]
       else if (props.initialFocus === 'reps') targetInput = inputs[1]
-      else if (props.initialFocus === 'rest') targetInput = inputs[2]
 
       if (targetInput) {
         targetInput.focus()
@@ -54,11 +51,6 @@ onMounted(() => {
         label="Repetitions" 
         type="calculate"
         @change="(value)=>props.onRepsChange(Number(value))"
-      />
-
-      <TimePicker
-        :value="props.set.rest_seconds"
-        @change="props.onRestChange"
       />
     </div>
   </ModalWindow>

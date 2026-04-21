@@ -35,7 +35,7 @@ const timeChanged = () => {
     <CustomInput
       v-model:value="minutes"
       type="calculate"
-      label="Rest minutes"
+      label="Minutes"
       @blur="timeChanged" 
     />
     
@@ -46,7 +46,7 @@ const timeChanged = () => {
     <CustomInput
       v-model:value="seconds"
       type="calculate"
-      label="Rest seconds"
+      label="Seconds"
       @blur="timeChanged" 
     />
   </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type InputSetting from '$src/components/settings/InputSetting.vue'
+import InputSetting from '$src/components/settings/InputSetting.vue'
 import type MultiChoiceSetting from '$src/components/settings/MultiChoiceSetting.vue'
 import { endpoints } from '$src/api/endpoints'
 import ModalWindow from '$src/components/reusable/ModalWindow.vue'
@@ -42,7 +42,7 @@ interface InputSettingView {
   title: string
   subtitle: string
   state?: string
-  onChange?: (values: string) => void
+  onChange?: (value: string) => void
 }
 
 type SettingView = BooleanSettingView | MultiChoiceSettingView | InputSettingView
@@ -113,6 +113,21 @@ const settingsView = computed<Array<SettingView>>(() => [
     subtitle: 'Measure fiber',
     state: settings?.data?.fiber_100g,
     onToggle: (active) => mutateSettings({ fiber_100g: active }),
+  },
+  {
+    component: BooleanSetting,
+    title: 'Auto timer',
+    subtitle: 'Make the timer stop automatically, when editing a set',
+    state: settings?.data?.auto_timer,
+    onToggle: (active) => mutateSettings({ auto_timer: active }),
+  },
+  {
+    component: InputSetting,
+    placeholder: '0',
+    title: 'Timer limit (seconds)',
+    subtitle: 'Set the limit for the timer to display a deadline warning for rest (0 means no limit)',
+    state: settings?.data?.rest_limit,
+    onChange: (value: string) => mutateSettings({ rest_limit: Number(value) }),
   },
   // {
   //   component: BooleanSetting,

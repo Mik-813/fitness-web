@@ -8,4 +8,6 @@ interface Settings {
   price: boolean
   currency_sign: string
   language: 'en' | 'pl' | 'ua'
+  auto_timer: boolean 
+  rest_limit: number
 }
