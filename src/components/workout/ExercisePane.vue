@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { watch, ref } from 'vue'
-import TimeModal from './TimeModal.vue'
 import { endpoints } from '$src/api/endpoints'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 import ClockIcon from '$src/components/icons/ClockIcon.vue'
@@ -11,8 +10,9 @@ import ScalesIcon from '$src/components/icons/ScalesIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 import Tags from '$src/components/workout/ExerciseTags.vue'
 import SetModal from '$src/components/workout/SetModal.vue'
+import TimeModal from '$src/components/workout/TimeModal.vue'
 import { settings } from '$src/states/state'
-import { startTimer, stopTimer, timerRunning, timerSeconds } from '$src/states/timer'
+import { startTimer, timerSeconds } from '$src/states/timer'
 import { customToast } from '$src/utils/custom-toast'
 import { showModal } from '$src/utils/show-modal'
 
@@ -23,7 +23,7 @@ const formatRestTime = (seconds: number) => {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
 
-const props = defineProps<{ onRemove: (exercise: Exercise) => void, }>()
+defineProps<{ onRemove: (exercise: Exercise) => void, }>()
 
 const exerciseModel = defineModel<Exercise>({ required: true })
 const exercise = endpoints.getExercise(exerciseModel.value.id).use(exerciseModel.value, false)
@@ -270,16 +270,18 @@ function toggleWrapping() {
         style="border-spacing: 0 0.5rem;"
       >
         <thead>
-          <tr class="">
+          <tr>
             <th class="p-2 px-3 w-max bg-main-bg/50 rounded-l-xl" />
 
             <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
               Weight
             </th>
 
-            <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-full bg-main-bg/50">
+            <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
               Reps
             </th>
+
+            <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-full bg-main-bg/50" />
             
             <th class="text-left font-semibold text-pane-title text-sm p-2 px-4.5 w-max bg-main-bg/50">
               Rest
@@ -326,7 +328,7 @@ function toggleWrapping() {
               class="px-3 py-2.5 text-left whitespace-nowrap"
               @click.stop="openSetModal(set, index, 'weight')"
             >
-              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+              <button class="tabular-nums tracking-tight flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <ScalesIcon />
                 {{ set.weight_kg }}kg
               </button>
@@ -336,17 +338,19 @@ function toggleWrapping() {
               class="px-3 py-2.5 text-left whitespace-nowrap"
               @click.stop="openSetModal(set, index, 'reps')"
             >
-              <button class="inline-flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+              <button class="tabular-nums tracking-tight flex items-center px-2 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <FireIcon />
                 {{ set.reps_number }}
               </button>
             </td>
 
+            <td />
+
             <td
               class="px-3 py-2.5 text-left whitespace-nowrap"
               @click.stop="openTimeModal(set, index)"
             >
-              <button class="tabular-nums tracking-tight flex items-center w-full justify-between pl-2 pr-3 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
+              <button class="tabular-nums tracking-tight flex w-full items-center justify-between pl-2 pr-3 py-1.5 rounded-lg gap-1.5 font-semibold stroke-2 text-sm bg-grad-start/15 text-grad-start">
                 <ClockIcon />
 
                 <span v-if="set.rest_seconds">
