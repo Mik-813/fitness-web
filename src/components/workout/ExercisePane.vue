@@ -13,7 +13,7 @@ import Tags from '$src/components/workout/ExerciseTags.vue'
 import SetModal from '$src/components/workout/SetModal.vue'
 import TimeModal from '$src/components/workout/TimeModal.vue'
 import { settings } from '$src/states/state'
-import { startTimer, timerSeconds } from '$src/states/timer'
+import { startTimer, stopTimer, timerSeconds } from '$src/states/timer'
 import { customToast } from '$src/utils/custom-toast'
 import { showModal } from '$src/utils/show-modal'
 
@@ -150,6 +150,7 @@ function openTimeModal(set: ExSet, index: number) {
       onRestChange: (rest_seconds: number) => mutateSet(index, { rest_seconds }),
     },
   )
+  settings.data?.auto_timer && stopTimer()
 }
 
 
