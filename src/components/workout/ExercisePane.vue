@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { watch, ref } from 'vue'
+import { vAutoAnimate } from '@formkit/auto-animate'
+import { watch, ref, nextTick } from 'vue'
 import { endpoints } from '$src/api/endpoints'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 import ClockIcon from '$src/components/icons/ClockIcon.vue'
@@ -171,13 +172,23 @@ function addSet() {
 }
 
 const isWrapped = ref(true)
-function toggleWrapping() {
+const isTransitioning = ref(false)
+
+async function toggleWrapping() {
   if (!document.startViewTransition) {
     isWrapped.value = !isWrapped.value
     return
   }
-  document.startViewTransition(() => {
+
+  isTransitioning.value = true
+  await nextTick()
+
+  const transition = document.startViewTransition(() => {
     isWrapped.value = !isWrapped.value
+  })
+
+  transition.finished.finally(() => {
+    isTransitioning.value = false
   })
 }
 </script>
@@ -187,7 +198,7 @@ function toggleWrapping() {
     <div class="flex items-center justify-between gap-2">
       <button
         class="text-gray-500"
-        :style="{ viewTransitionName: `exercise-toggle-${exercise.data.id}` }"
+        :style="isTransitioning ? { viewTransitionName: `exercise-toggle-${exercise.data.id}` } : {}"
         @click="toggleWrapping"
       >
         <div :style="{ rotate: isWrapped ? '-90deg' : '0deg', transition: 'rotate 0.2s' }">
@@ -200,14 +211,14 @@ function toggleWrapping() {
         :src="exercise.data.image_url ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
         :alt="exercise.data.title"
         class="rounded-2xl size-20"
-        :style="{ viewTransitionName: `exercise-img-${exercise.data.id}` }"
+        :style="isTransitioning ? { viewTransitionName: `exercise-img-${exercise.data.id}` } : {}"
       >
 
       <div class="flex flex-col gap-2 px-2">
         <span
           class="font-semibold w-fit"
           :class="exercise.data.title ? 'text-gray-800' : 'text-gray-400'"
-          :style="{ viewTransitionName: `exercise-title-${exercise.data.id}` }"
+          :style="isTransitioning ? { viewTransitionName: `exercise-title-${exercise.data.id}` } : {}"
         >
           {{ exercise.data.title || "(Empty title)" }}
         </span>
@@ -219,7 +230,8 @@ function toggleWrapping() {
       </div>
       
       <button
-        class="sm:ml-auto text-gray-500 px-1 self-start"
+        class="text-gray-500 px-1 self-start"
+        :class="isWrapped ? 'ml-auto' : ''"
         @click="onRemove(exercise.data)"
       >
         <XMarkIcon class="h-full" />
@@ -228,16 +240,16 @@ function toggleWrapping() {
     
     <div
       v-if="!isWrapped"
-      class="flex flex-col sm:flex-row gap-4 my-3"
+      class="flex flex-col sm:flex-row gap-6 my-6"
     >
       <img 
         :src="exercise.data.image_url ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
         :alt="exercise.data.title"
-        class="rounded-2xl w-full max-w-72 aspect-square object-cover self-center sm:self-start shrink-0"
-        :style="{ viewTransitionName: `exercise-img-${exercise.data.id}` }"
+        class="rounded-2xl w-full max-w-72 ml-32 aspect-square object-cover self-center sm:self-start shrink-0"
+        :style="isTransitioning ? { viewTransitionName: `exercise-img-${exercise.data.id}` } : {}"
       >
 
-      <div class="flex flex-col gap-2 flex-1">
+      <div class="flex flex-col gap-2 flex-1 p-2">
         <span class="text-sm font-semibold text-gray-800">
           Instructions
         </span>
@@ -245,6 +257,8 @@ function toggleWrapping() {
         <div class="text-sm">
           Some unimplemented instructions
         </div>
+
+        <div class="flex-1 h-full" />
 
         <span class="text-sm font-semibold text-gray-800">
           Tags
@@ -254,7 +268,7 @@ function toggleWrapping() {
       </div>
     </div>
 
-    <div 
+    <div
       v-if="exercise.data.sets && exercise.data.sets.length > 0" 
       class="mt-2 w-full overflow-x-auto no-scrollbar"
     >
