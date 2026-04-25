@@ -1,12 +1,8 @@
 interface Exercise {
   id: number
-  image_url: string
   record_date: string
-  title: string
-  muscle: string
-  bodypart: string
-  equipment: string
-  secondary_muscle?: string
+  db_exercise_id: string
+  exercise: DbExercise
   sets: Array<ExSet>
   created_at: string
   updated_at: string

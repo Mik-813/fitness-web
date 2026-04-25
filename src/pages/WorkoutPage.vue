@@ -32,7 +32,7 @@ async function tryRemoveExercise(exercise: Exercise){
   })
 }
 
-const isExerciseLauncherOpen = ref(true)
+const isExerciseLauncherOpen = ref(false)
 
 function scrollIntoExercise(title: string) {
   const element = document.querySelector(
@@ -52,11 +52,22 @@ function scrollIntoExercise(title: string) {
   )
 }
 
-function tryCreateExercise(title: string) {
-
-}
-
-function trySelectDbExercise(){
+function trySelectDbExercise(dbExercise: DbExercise){
+  if (!exercises.value.data) return
+  if (exercises.value.data.some(e => e.db_exercise_id === dbExercise.exerciseId)) {
+    scrollIntoExercise(dbExercise.name)
+    return
+  }
+  exercises.value.mutate({
+    request: endpoints.createExercise({
+      record_date: useDateFormat(currentDate.value, 'YYYY-MM-DD').value,
+      db_exercise_id: dbExercise.exerciseId,
+    }).invoke,
+    refetch: true,
+    onError: () => {
+      customToast.error('Couldn\'t create new exercise')
+    },
+  })
 }
 
 
@@ -111,7 +122,6 @@ async function tryResetDate() {
           :visible="isExerciseLauncherOpen"
           :exercises="exercises.data!"
           @close="()=> (isExerciseLauncherOpen=false)"
-          @create="tryCreateExercise"
           @locate="scrollIntoExercise"
           @select="trySelectDbExercise"
         />

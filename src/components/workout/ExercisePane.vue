@@ -193,26 +193,15 @@ async function toggleWrapping() {
 }
 
 const tags = computed(() => {
-  const { muscle, secondary_muscle: secondaryMuscle, bodypart } = exercise.data
-  
-  const generatedTags = [muscle]
-  
-  if (secondaryMuscle) {
-    generatedTags.push(secondaryMuscle)
-  }
-  
-  if (bodypart && bodypart.toLowerCase() !== muscle.toLowerCase()) {
-    generatedTags.push(bodypart)
-  }
-  
-  return generatedTags
+  const { targetMuscles, secondaryMuscles, bodyParts, equipments } = exercise.data.exercise
+  return bodyParts.concat(targetMuscles).concat(secondaryMuscles).concat(equipments)
 })
 </script>
 
 <template>
   <div
-    class="flex flex-col bg-pane-bg p-4 mt-4 rounded-2xl"
-    :data-exercise-title="exercise.data.title"
+    class="flex flex-col bg-pane-bg p-4 mt-4 rounded-2xl transition-all"
+    :data-exercise-title="exercise.data.exercise.name"
   >
     <div class="flex items-center justify-between gap-2">
       <button
@@ -227,19 +216,19 @@ const tags = computed(() => {
       
       <img 
         v-if="isWrapped"
-        :src="exercise.data.image_url ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
-        :alt="exercise.data.title"
+        :src="exercise.data.exercise.gifUrl ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
+        :alt="exercise.data.exercise.name"
         class="rounded-2xl size-20"
         :style="isTransitioning ? { viewTransitionName: `exercise-img-${exercise.data.id}` } : {}"
       >
 
       <div class="flex flex-col gap-2 px-2">
         <span
-          class="font-semibold w-fit"
-          :class="exercise.data.title ? 'text-gray-800' : 'text-gray-400'"
+          class="first-letter:uppercase font-semibold w-fit"
+          :class="exercise.data.exercise.name ? 'text-gray-800' : 'text-gray-400'"
           :style="isTransitioning ? { viewTransitionName: `exercise-title-${exercise.data.id}` } : {}"
         >
-          {{ exercise.data.title || "(Empty title)" }}
+          {{ exercise.data.exercise.name || "(Empty title)" }}
         </span>
 
         <Tags
@@ -262,19 +251,34 @@ const tags = computed(() => {
       class="flex flex-col sm:flex-row gap-6 my-6"
     >
       <img 
-        :src="exercise.data.image_url ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
-        :alt="exercise.data.title"
-        class="rounded-2xl w-full max-w-72 ml-32 aspect-square object-cover self-center sm:self-start shrink-0"
+        :src="exercise.data.exercise.gifUrl ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
+        :alt="exercise.data.exercise.name"
+        class="w-full max-w-60 aspect-square self-center sm:self-start shrink-0 ml-4 mr-2"
         :style="isTransitioning ? { viewTransitionName: `exercise-img-${exercise.data.id}` } : {}"
       >
 
-      <div class="flex flex-col gap-2 flex-1 p-2">
+      <div class="flex flex-col gap-3 flex-1 p-2">
         <span class="text-sm font-semibold text-gray-800">
           Instructions
         </span>
 
-        <div class="text-sm">
-          Some unimplemented instructions
+        <div
+          v-if="exercise.data.exercise.instructions"
+          class="flex flex-col gap-2 text-sm text-pane-text"
+        >
+          <div
+            v-for="(instruction, idx) in exercise.data.exercise.instructions"
+            :key="idx"
+            class="flex gap-2 items-baseline"
+          >
+            <span class="bg-grad-start/20 text-grad-start font-semibold px-2 py-0.5 rounded-md text-sm tabular-nums tracking-tight">
+              {{ instruction.replace("Step:", "").split(' ')[0] }}
+            </span>
+
+            <span>
+              {{ instruction.replace(/^Step:\d+\s+/, "") }}
+            </span>
+          </div>
         </div>
 
         <div class="flex-1 h-full" />
