@@ -53,7 +53,7 @@ const handleSelect = (item: Item<T>) => {
     <Transition name="fade">
       <DropdownComponent
         v-if="isOpen"
-        :items="items"
+        :items="[{ category: '', items: items }]"
         :trigger-ref="buttonRef"
         @select="handleSelect"
         @close="isOpen = false"

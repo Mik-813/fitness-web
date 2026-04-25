@@ -3,12 +3,14 @@ import { onClickOutside } from '@vueuse/core'
 import Fuse from 'fuse.js'
 import { ref, computed, onMounted, watch } from 'vue'
 import SortIcon from '../icons/SortIcon.vue'
+import XMarkIcon from '../icons/XMarkIcon.vue'
 import { edbApi } from '$src/api/endpoints'
 import FilterIcon from '$src/components/icons/FilterIcon.vue'
 import MagnifierIcon from '$src/components/icons/MagnifierIcon.vue'
 import DropdownComponent from '$src/components/reusable/DropdownComponent.vue'
 import ScrollableTemplate from '$src/components/templates/ScrollableTemplate.vue'
 import ExerciseTags from '$src/components/workout/ExerciseTags.vue'
+import { bodyparts, equipments, muscles } from '$src/data/data'
 
 const props = defineProps<{
   exercises: Exercise[]
@@ -130,7 +132,53 @@ function onFilterOpen(){
   isFilterOpen.value = true
 }
 
-function onFilterSelected() {
+const bodypartFilters = ref<string[]>([])
+const muscleFilters = ref<string[]>([])
+const equipmentFilters = ref<string[]>([])
+
+function onFilterSelected(item: Item<string>) {
+  if (item.data === 'bodyparts') {
+    bodypartFilters.value = [...bodypartFilters.value, item.title]
+    filters.value.bodyParts = bodypartFilters.value.join(',')
+  }
+  else if (item.data === 'muscles') {
+    muscleFilters.value = [...muscleFilters.value, item.title]
+    filters.value.muscles = muscleFilters.value.join(',')
+  }
+  else if (item.data === 'equipments') {
+    equipmentFilters.value = [...equipmentFilters.value, item.title]
+    filters.value.equipment = equipmentFilters.value.join(',')
+  }
+}
+
+const allAddedFilters = computed(() => [
+  ...bodypartFilters.value.map(v => ({
+    type: 'bodyparts' as const,
+    value: v, 
+  })),
+  ...muscleFilters.value.map(v => ({
+    type: 'muscles' as const,
+    value: v, 
+  })),
+  ...equipmentFilters.value.map(v => ({
+    type: 'equipments' as const,
+    value: v, 
+  })),
+])
+
+function removeFilter(type: 'bodyparts' | 'muscles' | 'equipments', value: string) {
+  if (type === 'bodyparts') {
+    bodypartFilters.value = bodypartFilters.value.filter(v => v !== value)
+    filters.value.bodyParts = bodypartFilters.value.join(',') || undefined
+  }
+  else if (type === 'muscles') {
+    muscleFilters.value = muscleFilters.value.filter(v => v !== value)
+    filters.value.muscles = muscleFilters.value.join(',') || undefined
+  }
+  else if (type === 'equipments') {
+    equipmentFilters.value = equipmentFilters.value.filter(v => v !== value)
+    filters.value.equipment = equipmentFilters.value.join(',') || undefined
+  }
 }
 </script>
 
@@ -149,31 +197,46 @@ function onFilterSelected() {
     >
       <div 
         ref="dropdownContainer"
-        class="bg-pane-bg rounded-lg flex flex-col w-full max-w-lg overflow-hidden mt-12 border-4 border-pane-bg"
+        class="bg-pane-bg rounded-lg flex flex-col w-full max-w-lg mt-12 border-4 border-pane-bg"
       >
         <div class="flex p-1">
-          <div class="flex pl-2 pr-3 gap-3">
+          <!-- <div class="flex pl-2 pr-3 gap-3">
             <button>
               <SortIcon class-name="text-primary stroke-2 size-6" />
             </button>
 
             <button
               ref="filterRef"
+              role="button"
+              class="relative flex items-center"
               @click="onFilterOpen"
             >
               <FilterIcon class-name="text-primary stroke-2 size-6" />
-  
+
               <Transition name="fade">
                 <DropdownComponent
                   v-if="isFilterOpen"
-                  :items="[/* its unclear what should be here rn */ ]"
+                  :items="[
+                    {
+                      category: 'muscles',
+                      items: muscles.map(m => ({ title: m, data: 'muscles' })),
+                    },
+                    {
+                      category: 'body parts',
+                      items: bodyparts.map(b => ({ title: b, data: 'bodyparts' }))
+                    },
+                    {
+                      category: 'equipments', 
+                      items: equipments.map(e => ({ title: e, data: 'equipments' }))
+                    },
+                  ]"
                   :trigger-ref="filterRef"
                   @select="onFilterSelected"
                   @close="isFilterOpen = false"
                 />
               </Transition>
             </button>
-          </div>
+          </div> -->
 
           <input
             ref="searchInput"
@@ -185,7 +248,21 @@ function onFilterSelected() {
             @input="onSearchQueryChange"
           >
         </div>
-        <!-- create a component that containes filters right here  -->
+
+        <div class="relative flex flex-wrap gap-2 px-2">
+          <span 
+            v-for="(filter, index) in allAddedFilters"
+            :key="index"
+            class="flex gap-0.5 items-center w-fit whitespace-nowrap bg-grad-start/20 text-grad-start font-semibold px-1.5 py-0.5 rounded-md text-sm lowercase"
+          >
+            {{ filter.value }}
+            <XMarkIcon
+              class-name="size-4 cursor-pointer stroke-[1.5]"
+              @click="removeFilter(filter.type, filter.value)"
+            />
+          </span>
+        </div>
+
         <div
           v-if="filteredExercises.length" 
           class="px-2 pt-1"
