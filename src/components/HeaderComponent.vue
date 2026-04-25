@@ -18,11 +18,11 @@ import { exportCSV, importCSV } from '$src/utils/service-CSV'
 import { showModal } from '$src/utils/show-modal'
 
 const buttons = [
-  {
-    text: 'Statistics',
-    icon: StatsIcon,
-    onClick: async () => router.push(paths.statistics), 
-  },
+  // {
+  //   text: 'Statistics',
+  //   icon: StatsIcon,
+  //   onClick: async () => router.push(paths.statistics), 
+  // },
   {
     text: 'Diet',
     icon: PotionIcon,

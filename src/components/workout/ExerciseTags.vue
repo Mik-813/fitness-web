@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 
-const props = defineProps<{ exercise: Exercise, }>()
+defineProps<{ tags: string[], }>()
 const tagsContainerRef = ref<HTMLElement | null>(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
@@ -57,23 +57,6 @@ const scrollTags = (direction: 'left' | 'right') => {
   )
 }
 
-
-const tags = computed(() => {
-  const { muscle, secondary_muscle: secondaryMuscle, bodypart } = props.exercise
-  
-  const generatedTags = [muscle]
-  
-  if (secondaryMuscle) {
-    generatedTags.push(secondaryMuscle)
-  }
-  
-  if (bodypart && bodypart.toLowerCase() !== muscle.toLowerCase()) {
-    generatedTags.push(bodypart)
-  }
-  
-  return generatedTags
-})
-
 let tagsObserver: ResizeObserver | null = null
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -109,6 +92,25 @@ onUnmounted(() => {
   tagsObserver?.disconnect()
   if (scrollTimeout) clearTimeout(scrollTimeout)
 })
+
+const maskStyle = computed(() => {
+  let mask = 'none'
+  
+  if (canScrollLeft.value && canScrollRight.value) {
+    mask = 'linear-gradient(to right, transparent 0%, transparent 5%, black 15%, black 85%, transparent 95%, transparent 100%)'
+  }
+  else if (canScrollLeft.value) {
+    mask = 'linear-gradient(to left, black 0%, black 85%, transparent 95%, transparent 100%)'
+  }
+  else if (canScrollRight.value) {
+    mask = 'linear-gradient(to right, black 0%, black 85%, transparent 95%, transparent 100%)'
+  }
+  
+  return {
+    maskImage: mask,
+    WebkitMaskImage: mask,
+  }
+})
 </script>
 
 <template>
@@ -116,10 +118,10 @@ onUnmounted(() => {
     <Transition name="fade">
       <div 
         v-show="canScrollLeft"
-        class="absolute left-0 top-0 bottom-0 w-12 bg-linear-to-r from-white via-white/90 to-transparent flex items-center justify-start z-10"
+        class="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-start z-10"
       >
         <button 
-          class="text-gray-400 hover:text-gray-600 focus:outline-none"
+          class="text-gray-400 hover:text-gray-600 focus:outline-none bg-transparent"
           @click.stop="scrollTags('left')"
         >
           <ChevronDownIcon class-name="size-4 stroke-3 rotate-90" />
@@ -129,7 +131,8 @@ onUnmounted(() => {
         
     <div 
       ref="tagsContainerRef"
-      class="flex gap-2 overflow-x-auto w-full no-scrollbar relative z-0 scroll-smooth"
+      class="flex gap-2 overflow-x-auto w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative z-0 scroll-smooth"
+      :style="maskStyle"
       @scroll="checkScroll"
       @wheel="handleWheel"
     >
@@ -145,10 +148,10 @@ onUnmounted(() => {
     <Transition name="fade">
       <div 
         v-show="canScrollRight"
-        class="absolute right-0 top-0 bottom-0 w-12 bg-linear-to-l from-white via-white/90 to-transparent flex items-center justify-end z-10"
+        class="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-end z-10"
       >
         <button 
-          class="text-gray-400 hover:text-gray-600 focus:outline-none rounded-full p-0.5 -mr-1"
+          class="text-gray-400 hover:text-gray-600 focus:outline-none rounded-full p-0.5 -mr-1 bg-transparent"
           @click.stop="scrollTags('right')"
         >
           <ChevronDownIcon class-name="size-4 stroke-3 -rotate-90" />

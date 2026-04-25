@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { vAutoAnimate } from '@formkit/auto-animate'
-import { watch, ref, nextTick } from 'vue'
+import { watch, ref, nextTick, computed } from 'vue'
 import { endpoints } from '$src/api/endpoints'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 import ClockIcon from '$src/components/icons/ClockIcon.vue'
@@ -192,10 +191,29 @@ async function toggleWrapping() {
     isTransitioning.value = false
   })
 }
+
+const tags = computed(() => {
+  const { muscle, secondary_muscle: secondaryMuscle, bodypart } = exercise.data
+  
+  const generatedTags = [muscle]
+  
+  if (secondaryMuscle) {
+    generatedTags.push(secondaryMuscle)
+  }
+  
+  if (bodypart && bodypart.toLowerCase() !== muscle.toLowerCase()) {
+    generatedTags.push(bodypart)
+  }
+  
+  return generatedTags
+})
 </script>
 
 <template>
-  <div class="flex flex-col bg-pane-bg p-4 mt-4 rounded-2xl">
+  <div
+    class="flex flex-col bg-pane-bg p-4 mt-4 rounded-2xl"
+    :data-exercise-title="exercise.data.title"
+  >
     <div class="flex items-center justify-between gap-2">
       <button
         class="text-gray-500"
@@ -226,7 +244,7 @@ async function toggleWrapping() {
 
         <Tags
           v-if="isWrapped"
-          :exercise="exercise.data"
+          :tags="tags"
         />
       </div>
       
@@ -265,7 +283,7 @@ async function toggleWrapping() {
           Tags
         </span>
 
-        <Tags :exercise="exercise.data" />
+        <Tags :tags="tags" />
       </div>
     </div>
 

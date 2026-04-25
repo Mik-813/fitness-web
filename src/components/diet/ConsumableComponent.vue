@@ -61,7 +61,7 @@ const errors = ref<ConsumableError>({})
 
   
 async function mutateConsumable(prop: Partial<Consumable>) {
-  // that were not supposed to work, what?
+  // that wes not supposed to work, what?
   const newData = {
     ...consumable.data,
     ...prop,

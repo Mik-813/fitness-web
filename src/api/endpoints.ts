@@ -53,7 +53,4 @@ export const endpoints = {
   updateSettings            : (body: Partial<Settings>) => createRequest<Settings, ApiError, Partial<Settings>>(PUT, '/api/settings', body),
 }
 
-export const edbApi = {
-  getExercise               : (id: number) => createEdbRequest<Exercise, ApiError>(GET, `/api/v1/exercises/${id}`),
-  searchExercises           : (query: string) => createEdbRequest<Exercise[], ApiError>(GET, `/api/v1/exercises/search?query=${query}`),
-}
+export const edbApi = { getFilteredExericises: (filters: ExerciseFilters) => createEdbRequest<DbExercisesPage, ApiError>(GET, `/api/v1/exercises/filter?${new URLSearchParams(filters as Record<string, any>).toString()}`) }

@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
-import { computed } from 'vue'
-import { endpoints } from '$src/api/endpoints'
+import { useDateFormat } from '@vueuse/core'
+import { computed, ref } from 'vue'
+import { endpoints, edbApi } from '$src/api/endpoints'
+import PlusIcon from '$src/components/icons/PlusIcon.vue'
+import TrashIcon from '$src/components/icons/TrashIcon.vue'
 import NoData from '$src/components/NoData.vue'
 import PageLayout from '$src/components/templates/PageLayout.vue'
+import ExerciseLauncher from '$src/components/workout/ExerciseLauncher.vue'
 import ExercisePane from '$src/components/workout/ExercisePane.vue'
 import TimerComponent from '$src/components/workout/TimerComponent.vue'
 import { currentDate } from '$src/states/date'
@@ -25,6 +29,47 @@ async function tryRemoveExercise(exercise: Exercise){
     onError: () => {
       customToast.error('Couldn\'t delete exercise')
     },
+  })
+}
+
+const isExerciseLauncherOpen = ref(true)
+
+function scrollIntoExercise(title: string) {
+  const element = document.querySelector(
+    `[data-exercise-title="${title}"]`,
+  )!
+  if (!element) return
+
+  element.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  })
+
+  element.classList.add('ring-3', 'ring-secondary', 'rounded-t-lg')
+  setTimeout(
+    () => element.classList.remove('ring-3', 'ring-secondary', 'rounded-t-lg'),
+    1000,
+  )
+}
+
+function tryCreateExercise(title: string) {
+
+}
+
+function trySelectDbExercise(){
+}
+
+
+async function tryResetDate() {
+  exercises.value.mutate({
+    data: [],
+    request: endpoints.removeDates({
+      filter: 'exercises',
+      record_date: useDateFormat(currentDate.value, 'YYYY-MM-DD').value,
+    }).invoke,
+    onError: () => {
+      customToast.error('Couldn\'t reset date')
+    }, 
   })
 }
 </script>
@@ -53,8 +98,44 @@ async function tryRemoveExercise(exercise: Exercise){
         title="No exercises provided"
         subtitle="Add some exercises to start tracking your progress"
       />
+      
+      <span
+        v-else
+        class="h-30"
+      >
+        Loading...
+      </span>
 
-      <div v-else />
+      <template #overlay>
+        <ExerciseLauncher
+          :visible="isExerciseLauncherOpen"
+          :exercises="exercises.data!"
+          @close="()=> (isExerciseLauncherOpen=false)"
+          @create="tryCreateExercise"
+          @locate="scrollIntoExercise"
+          @select="trySelectDbExercise"
+        />
+      </template>
+
+      <template #controls>
+        <div class="fixed right-0 bottom-0 m-4">
+          <div class="flex flex-col gap-2">
+            <button
+              class="flex gap-2 shadow-lg shadow-primary/40 bg-linear-to-r from-grad-start to-grad-end transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+              @click="isExerciseLauncherOpen = true"
+            >
+              <PlusIcon class="stroke-2" /> Add exercise
+            </button>
+
+            <button
+              class="flex gap-2 shadow-lg shadow-red-600/40 bg-linear-to-r from-red-600 to-orange-600 transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+              @click="tryResetDate"
+            >
+              <TrashIcon class="stroke-2" /> Reset date
+            </button>
+          </div>
+        </div>
+      </template>
     </PageLayout>
   </div>
 </template>

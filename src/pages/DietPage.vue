@@ -178,12 +178,17 @@ const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field =
     </template>
 
     <NoData
-      v-else
+      v-else-if="consumables.data !== undefined"
       title="No products added"
       subtitle="Add products to start tracking your nutritions"
     />
 
-    <div class="h-30" />
+    <span
+      v-else
+      class="h-30"
+    >
+      Loading...
+    </span>
 
     <template #overlay>
       <ProductLauncher
