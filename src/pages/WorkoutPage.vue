@@ -93,8 +93,9 @@ async function tryResetDate() {
     
     <PageLayout :hide="exercises.data === undefined">
       <div
-        v-if="exercises.data?.length ?? 0 > 0"
+        v-if="exercises.data !== undefined"
         v-auto-animate
+        class="flex flex-col gap-4 mt-4"
       >
         <ExercisePane
           v-for="(exercise, idx) in exercises.data"
@@ -102,13 +103,13 @@ async function tryResetDate() {
           v-model="exercises.data![idx]"
           @remove="tryRemoveExercise"
         />
-      </div>
 
-      <NoData
-        v-else-if="exercises.data !== undefined"
-        title="No exercises provided"
-        subtitle="Add some exercises to start tracking your progress"
-      />
+        <NoData
+          v-if="exercises.data.length === 0"
+          title="No exercises provided"
+          subtitle="Add some exercises to start tracking your progress"
+        />
+      </div>
       
       <span
         v-else

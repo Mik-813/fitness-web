@@ -200,7 +200,7 @@ const tags = computed(() => {
 
 <template>
   <div
-    class="flex flex-col bg-pane-bg p-4 mt-4 rounded-2xl transition-all"
+    class="flex flex-col bg-pane-bg p-4 rounded-2xl transition-shadow"
     :data-exercise-title="exercise.data.exercise.name"
   >
     <div class="flex items-center justify-between gap-2">

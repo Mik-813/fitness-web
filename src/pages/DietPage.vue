@@ -160,28 +160,30 @@ const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field =
   </div>
 
   <PageLayout :hide="consumables.data === undefined">
-    <template v-if="consumables.data!.length > 0">
-      <div v-auto-animate>
-        <Consumable
-          v-for="(consumable, idx) in consumables.data"
-          :key="consumable.id"
-          v-model="consumables.data![idx]"
-          :consumables="consumables.data!"
-          :weighted-products="weightedProducts.data"
-          :nutrient-fields="filteredNutritionData"
-          @title-update="updateWeightedTitles"
-          @weights-update="weightedProducts.execute"
-          @use-existing-product="tryRereateConsumable"
-          @remove="tryRemoveConsumable"
-        />
-      </div>
-    </template>
+    <div
+      v-if="consumables.data !== undefined"
+      v-auto-animate
+      class="flex flex-col gap-4 mt-4"
+    >
+      <Consumable
+        v-for="(consumable, idx) in consumables.data"
+        :key="consumable.id"
+        v-model="consumables.data![idx]"
+        :consumables="consumables.data!"
+        :weighted-products="weightedProducts.data"
+        :nutrient-fields="filteredNutritionData"
+        @title-update="updateWeightedTitles"
+        @weights-update="weightedProducts.execute"
+        @use-existing-product="tryRereateConsumable"
+        @remove="tryRemoveConsumable"
+      />
 
-    <NoData
-      v-else-if="consumables.data !== undefined"
-      title="No products added"
-      subtitle="Add products to start tracking your nutritions"
-    />
+      <NoData
+        v-if="consumables.data.length === 0"
+        title="No products added"
+        subtitle="Add products to start tracking your nutritions"
+      />
+    </div>
 
     <span
       v-else

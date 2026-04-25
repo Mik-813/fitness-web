@@ -16,6 +16,7 @@ import router, { paths } from '$src/router'
 import { currentDate, dates } from '$src/states/date'
 import { exportCSV, importCSV } from '$src/utils/service-CSV'
 import { showModal } from '$src/utils/show-modal'
+import LogoutIcon from './icons/LogoutIcon.vue'
 
 const buttons = [
   // {
@@ -41,30 +42,39 @@ type SidebarItem = Item<{
 }>
 
 const sidebarItems: SidebarItem[]= [
-  {
-    title: 'Import',
-    subtitle: 'Import your data',
-    data: {
-      className: 'bg-blue-500', 
-      Icon: ExportIcon,
-    },
-    onClick: () => importCSV,
-  },
-  {
-    title: 'Export',
-    subtitle: 'Export your data',
-    data: {
-      className: 'bg-green-500',
-      Icon: ImportIcon,
-    },
-    onClick: () => exportCSV,
-  },
+  // {
+  //   title: 'Import',
+  //   subtitle: 'Import your data',
+  //   data: {
+  //     className: 'bg-blue-500', 
+  //     Icon: ExportIcon,
+  //   },
+  //   onClick: () => importCSV,
+  // },
+  // {
+  //   title: 'Export',
+  //   subtitle: 'Export your data',
+  //   data: {
+  //     className: 'bg-green-500',
+  //     Icon: ImportIcon,
+  //   },
+  //   onClick: () => exportCSV,
+  // },
   {
     title: 'Settings',
     subtitle: 'Configure application',
     data: {
       className: 'bg-orange-500',
       Icon: SettingsIcon,
+    },
+    onClick: () => showModal(SettingsModal),
+  },
+  {
+    title: 'Logout',
+    subtitle: 'Logout from the application',
+    data: {
+      className: 'bg-white/10',
+      Icon: LogoutIcon,
     },
     onClick: () => showModal(SettingsModal),
   },
