@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { randomUUID } from 'crypto'
 import { Parser } from 'expr-eval'
 import { ref, computed, onMounted } from 'vue'
 import EyeIcon from '$src/components/icons/EyeIcon.vue'
@@ -12,6 +11,7 @@ const props = defineProps<{
   placeholder?: string
   type?: 'text' | 'number' | 'calculate' | 'password'
   error?: string
+  forceLabelActive?: boolean
   onFocus?: () => void
   onBlur?: () => void
   onInput?: (value: string) => void
@@ -26,7 +26,7 @@ const isFocused = ref(false)
 const inputElement = ref<HTMLInputElement | null>(null)
 
 const hasValue = computed(() => value.value === 0 || value.value)
-const isActive = computed(() => isFocused.value || hasValue.value)
+const isActive = computed(() => props.forceLabelActive || isFocused.value || hasValue.value)
 
 const passwordVisible = ref(false)
 
