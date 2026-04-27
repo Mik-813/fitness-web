@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { randomUUID } from 'crypto'
 import { Parser } from 'expr-eval'
 import { ref, computed, onMounted } from 'vue'
+import EyeIcon from '$src/components/icons/EyeIcon.vue'
 
 const value = defineModel<string | number | undefined | null>('value')
 
@@ -8,7 +10,7 @@ const props = defineProps<{
   initFocus?: boolean
   label?: string
   placeholder?: string
-  type?: 'text' | 'number' | 'calculate'
+  type?: 'text' | 'number' | 'calculate' | 'password'
   error?: string
   onFocus?: () => void
   onBlur?: () => void
@@ -25,6 +27,19 @@ const inputElement = ref<HTMLInputElement | null>(null)
 
 const hasValue = computed(() => value.value === 0 || value.value)
 const isActive = computed(() => isFocused.value || hasValue.value)
+
+const passwordVisible = ref(false)
+
+const inputType = computed(() => {
+  if (props.type === 'password') {
+    return passwordVisible.value ? 'text' : 'password'
+  }
+  return 'text'
+})
+
+function togglePasswordVisibility() {
+  passwordVisible.value = !passwordVisible.value
+}
 
 onMounted(() => {
   if (props.initFocus) {
@@ -81,13 +96,20 @@ function handleBlur() {
   isFocused.value = false
   props.onBlur?.()
 }
+
+function randomString(length: number): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+}
+
+const uniqueId = randomString(8)
 </script>
 
 <template>
   <div class="flex flex-col gap-0">
     <div class="relative py-2">
       <label
-        for="inputField"
+        :for="uniqueId"
         class="absolute left-3 pointer-events-none transition-all duration-200 ease-in-out"
         :class="[
           mergedError 
@@ -104,16 +126,17 @@ function handleBlur() {
       </label>
 
       <input
-        id="inputField"
+        :id="uniqueId"
         ref="inputElement"
         :value="value"
-        type="text"
+        :type="inputType"
         class="w-full border bg-white focus:ring-2 focus:border-transparent rounded-lg px-3 py-3 transition-all duration-200 outline-none text-sm"
         :placeholder="placeholder"
         :class="[
           mergedError 
             ? 'border-red-200 focus:ring-red-500' 
-            : 'border-gray-200 focus:ring-purple-600'
+            : 'border-gray-200 focus:ring-purple-600',
+          props.type === 'password' ? 'pr-10' : ''
         ]"
         @keydown="handleKeyDown"
         @change="handleChange"
@@ -121,6 +144,18 @@ function handleBlur() {
         @focus="handleFocus"
         @blur="handleBlur"
       >
+
+      <button
+        v-if="props.type === 'password'"
+        type="button"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors focus:outline-none"
+        @click="togglePasswordVisibility"
+      >
+        <EyeIcon
+          :mode="passwordVisible ? 'normal' : 'slashed'"
+          class-name="w-5 h-5 stroke-2"
+        />
+      </button>
     </div>
     
     <span

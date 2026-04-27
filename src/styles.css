@@ -40,6 +40,10 @@ html, body {
   overscroll-behavior: none;
 }
 
+.grecaptcha-badge {
+  z-index: 9999 !important;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;

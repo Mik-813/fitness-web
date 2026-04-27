@@ -1,3 +1,3 @@
 import { endpoints } from '$src/api/endpoints'
-
-export const settings = endpoints.getSettings().use(undefined)
+// this thing get loaded at the start
+export const settings = endpoints.getSettings().use(undefined, !!localStorage.getItem('token'))

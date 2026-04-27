@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import InputSetting from '$src/components/settings/InputSetting.vue'
 import type MultiChoiceSetting from '$src/components/settings/MultiChoiceSetting.vue'
 import { endpoints } from '$src/api/endpoints'
 import ModalWindow from '$src/components/reusable/ModalWindow.vue'
 import BooleanSetting from '$src/components/settings/BooleanSetting.vue'
+import InputSetting from '$src/components/settings/InputSetting.vue'
 import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
 

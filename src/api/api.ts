@@ -29,10 +29,23 @@ api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token')
     token && (config.headers.Authorization = token)
-    config.headers.Authorization = 'Bearer 1|hardcoded-token-secret'
     return config
   },
   async (error) => Promise.reject(error),
+)
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      import('$src/router').then(({ default: router }) => {
+        router.push('/')
+      })
+      return new Promise(() => {})
+    }
+    return Promise.reject(error)
+  },
 )
 
 export const createEdbRequest = <TRes, TErr, TBody = void>(

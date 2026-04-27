@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { type Component, computed, ref } from 'vue'
+import LogoutIcon from './icons/LogoutIcon.vue'
+import AnimatedTabs2 from './inputs/AnimatedTabs2.vue'
+import { endpoints } from '$src/api/endpoints'
 import DateSelector from '$src/components/DateSelector.vue'
 import BoltIcon from '$src/components/icons/BoltIcon.vue'
 import ExportIcon from '$src/components/icons/ExportIcon.vue'
@@ -16,7 +19,6 @@ import router, { paths } from '$src/router'
 import { currentDate, dates } from '$src/states/date'
 import { exportCSV, importCSV } from '$src/utils/service-CSV'
 import { showModal } from '$src/utils/show-modal'
-import LogoutIcon from './icons/LogoutIcon.vue'
 
 const buttons = [
   // {
@@ -76,7 +78,10 @@ const sidebarItems: SidebarItem[]= [
       className: 'bg-white/10',
       Icon: LogoutIcon,
     },
-    onClick: () => showModal(SettingsModal),
+    onClick: async () => {
+      await endpoints.authLogout().invoke()
+      window.location.reload()
+    },
   },
 ]
 
@@ -84,9 +89,8 @@ const isSidebarOpen = ref(false)
 
 function getRouteIndex() {
   const _route = window.location.pathname
-  if (_route === paths.statistics) return 0
-  if (_route === paths.diet) return 1
-  if (_route === paths.workout) return 2
+  if (_route === paths.diet) return 0
+  if (_route === paths.workout) return 1
   return 0
 }
 </script>
