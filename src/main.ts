@@ -9,7 +9,7 @@ createApp(App)
     VueReCaptcha, 
     {
       siteKey: '6LfCNlosAAAAAN6ym_NZg_IXdk09bnoaz6qfGmxz',
-      loaderOptions: {}, 
+      loaderOptions: { explicitRenderParameters: { badge: 'bottomleft' } }, 
     },
   )
   .use(router)
