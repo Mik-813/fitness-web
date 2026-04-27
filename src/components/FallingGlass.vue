@@ -43,16 +43,12 @@ onMounted(() => {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'
     ctx.fillRect(0, 0, 16, 16)
 
-    // Solid white border
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+    // Solid white border with full opacity
+    ctx.fillStyle = 'rgba(255, 255, 255, 1.0)'
     ctx.fillRect(0, 0, 16, 1)
     ctx.fillRect(0, 15, 16, 1)
     ctx.fillRect(0, 0, 1, 16)
     ctx.fillRect(15, 0, 1, 16)
-
-    // Minecraft-like diagonal streaks
-    ctx.fillRect(3, 3, 2, 2)
-    ctx.fillRect(5, 5, 3, 2)
 
     const texture = new THREE.CanvasTexture(canvas)
     texture.magFilter = THREE.NearestFilter // Pixelated blocky look
@@ -77,36 +73,24 @@ onMounted(() => {
   const shardsData: any[] = []
 
   for (let i = 0; i < shardCount; i++) {
-    const x = (Math.random() - 0.5) * 40
+    const radius = 2 + Math.random() * 10
+    const angle = Math.random() * Math.PI * 2
     const y = (Math.random() - 0.5) * 40
-    const z = (Math.random() - 0.5) * 20
-    
-    const rx = Math.random() * Math.PI * 2
-    const ry = Math.random() * Math.PI * 2
-    const rz = Math.random() * Math.PI * 2
 
     // Uniform scaling for blocks to simulate depth
     const scale = 0.5 + Math.random() * 1.5
 
-    // Keep everything pure white
     tempColor.setHex(0xffffff)
     instancedMesh.setColorAt(i, tempColor)
 
     shardsData.push({
-      x,
+      radius,
+      angle,
       y,
-      z,
-      rx,
-      ry,
-      rz,
       scale,
-      vy: -0.005 - Math.random() * 0.015, // Slower, dreamier fall
-      rvx: (Math.random() - 0.5) * 0.005, // Elegant 3D tumbling
-      rvy: (Math.random() - 0.5) * 0.005, 
-      rvz: (Math.random() - 0.5) * 0.005,
-      swaySpeed: 0.5 + Math.random() * 1.5,
-      swayPhase: Math.random() * Math.PI * 2,
-      swayAmount: 0.01 + Math.random() * 0.03, // Harmonic drift amount
+      vy: -0.01 - Math.random() * 0.02,
+      // Slower angular speed for outer particles enhances the hurricane feel
+      angularSpeed: 0.002 + (1 / radius) * 0.01,
     })
   }
 
@@ -115,29 +99,26 @@ onMounted(() => {
 
   const animate = () => {
     animationFrameId = requestAnimationFrame(animate)
-    const time = clock.getElapsedTime()
 
     for (let i = 0; i < shardCount; i++) {
       const data = shardsData[i]
 
       data.y += data.vy
-      data.rx += data.rvx
-      data.ry += data.rvy
-      data.rz += data.rvz
-
-      // Apply a smooth sine-wave drift for an organic, floating feel
-      const currentX = data.x + Math.sin(time * data.swaySpeed + data.swayPhase) * data.swayAmount * 100
-      const currentZ = data.z + Math.cos(time * data.swaySpeed * 0.8 + data.swayPhase) * data.swayAmount * 50
+      data.angle += data.angularSpeed
 
       // Loop shards back to the top when they fall past the screen bounds
       if (data.y < -20) {
         data.y = 20
-        data.x = (Math.random() - 0.5) * 40
-        data.swayPhase = Math.random() * Math.PI * 2 // Give a new trajectory
+        data.radius = 2 + Math.random() * 10
+        data.angle = Math.random() * Math.PI * 2
+        data.angularSpeed = 0.002 + (1 / data.radius) * 0.01
       }
 
-      dummy.position.set(currentX, data.y, currentZ)
-      dummy.rotation.set(data.rx, data.ry, data.rz)
+      const x = data.radius * Math.cos(data.angle)
+      const z = data.radius * Math.sin(data.angle)
+
+      dummy.position.set(x, data.y, z)
+      dummy.rotation.set(0, 0, 0)
       dummy.scale.set(data.scale, data.scale, data.scale)
       dummy.updateMatrix()
       instancedMesh.setMatrixAt(i, dummy.matrix)
