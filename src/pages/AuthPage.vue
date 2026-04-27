@@ -24,6 +24,11 @@ const toggleMode = () => {
   isLogin.value = !isLogin.value
 }
 
+const errors = ref({
+  email: '',
+  password: '',
+})
+
 const handleSubmit = async () => {
 
   const auth = isLogin.value ? endpoints.authLogin : endpoints.authRegister
@@ -34,6 +39,9 @@ const handleSubmit = async () => {
     password: form.value.password,
     recaptcha_token: recaptchaToken,
   }).invoke()
+  errors.value.email = (error?.errors as any)?.email.at(0) ?? ''
+  errors.value.password = (error?.errors as any)?.password.at(0) ?? ''
+
   localStorage.setItem('token', data?.token ?? '')
 
   if (data?.token) {
@@ -94,6 +102,7 @@ const authButtonIdx = ref(0)
           <CustomInput
             v-model:value="form.email"
             label="Email"
+            :error="errors.email"
             :force-label-active="true"
           />
 
@@ -101,6 +110,7 @@ const authButtonIdx = ref(0)
             v-model:value="form.password"
             type="password"
             label="Password"
+            :error="errors.password"
             :force-label-active="true"
           />
 
