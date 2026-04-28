@@ -45,7 +45,7 @@ const handleSubmit = async () => {
   localStorage.setItem('token', data?.token ?? '')
 
   if (data?.token) {
-    router.push(paths.diet)
+    window.location.href = paths.diet
   }
 }
 
