@@ -115,10 +115,10 @@ const uniqueId = randomString(8)
           mergedError 
             ? 'text-red-500' 
             : isFocused 
-              ? 'text-purple-600' 
+              ? 'text-primary' 
               : 'text-gray-500',
           isActive
-            ? 'top-0 text-xs font-medium bg-white px-1'
+            ? 'top-0 text-xs font-medium bg-pane-bg px-1'
             : 'top-1/2 -translate-y-1/2 text-sm'
         ]"
       >
@@ -130,12 +130,12 @@ const uniqueId = randomString(8)
         ref="inputElement"
         :value="value"
         :type="inputType"
-        class="w-full border bg-white focus:ring-2 focus:border-transparent rounded-lg px-3 py-3 transition-all duration-200 outline-none text-sm"
+        class="w-full ring-1 ring-primary/10 bg-pane-bg focus:ring-2 rounded-lg px-3 py-3 transition-all duration-200 outline-none text-sm"
         :placeholder="placeholder"
         :class="[
           mergedError 
             ? 'border-red-200 focus:ring-red-500' 
-            : 'border-gray-200 focus:ring-purple-600',
+            : 'border-gray-200 focus:ring-primary',
           props.type === 'password' ? 'pr-10' : ''
         ]"
         @keydown="handleKeyDown"
@@ -148,7 +148,7 @@ const uniqueId = randomString(8)
       <button
         v-if="props.type === 'password'"
         type="button"
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors focus:outline-none"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors focus:outline-none"
         @click="togglePasswordVisibility"
       >
         <EyeIcon

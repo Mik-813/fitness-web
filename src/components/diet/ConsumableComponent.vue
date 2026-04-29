@@ -3,8 +3,9 @@ import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import millify from 'millify'
 import { ref, onMounted, watch, computed } from 'vue'
 import { endpoints } from '$src/api/endpoints'
-import CheckIcon from '$src/components/icons/CheckIcon.vue'
+import WeightModal from '$src/components/diet/WeightModal.vue'
 import ChevronDown from '$src/components/icons/ChevronDownIcon.vue'
+import PlusIcon from '$src/components/icons/PlusIcon.vue'
 import SparkIcon from '$src/components/icons/SparkIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
@@ -13,6 +14,7 @@ import ThrobberComponent from '$src/components/reusable/ThrobberComponent.vue'
 import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
 import { isNumber } from '$src/utils/is-number'
+import { showModal } from '$src/utils/show-modal'
 
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -64,8 +66,6 @@ const computedNutritionLoading = computed(() => nutrition.value?.isLoading)
 
 const isWrapped = ref(true)
 const isNutriListOpen = ref(false)
-
-const addWeightQuery = ref('')
 
 const errors = ref<ConsumableError>({})
 
@@ -139,39 +139,43 @@ function handleWeightChange(value: number) {
   mutateConsumable({ weight_g: value })
 }
 
-function handleAddWeightChange(value: string) {
-  props.onWeightsUpdate()
-  addWeightQuery.value = value
-  errors.value.weights_g = ''
-  if (!value) return
+function updateAddWeight(value: string): boolean {
   const weight = Number(value)
-  if (!isNumber(weight)) return
+  if (!isNumber(weight)) {
+    customToast.error('Weight should be a valid number')
+    return false
+  }
+  props.onWeightsUpdate()
+  errors.value.weights_g = ''
   if (consumable.data.weights_g.includes(weight)) {
-    const errStr = 'Weight already exists'
-    errors.value.weights_g = errStr
-    return
+    customToast.error('Weight already exists')
+    return false
   }
   if (weight < 1) {
-    const errStr = 'Weight should be at least 1'
-    errors.value.weights_g = errStr
-    return
+    customToast.error('Weight should be at least 1')
+    return false
   }
-}
-
-function updateAddWeight() {
-  const value = Number(addWeightQuery.value)
-  if (!isNumber(value)) {
-    const errStr = 'Weight should be a valid number'
-    errors.value.weights_g = errStr
-    return
-  }
+  
   mutateConsumable({
     weights_g: [
       ...consumable.data.weights_g, 
-      value,
+      weight,
     ], 
   })
-  addWeightQuery.value = ''
+  return true
+}
+
+function showAddWeightModal() {
+  const clean = showModal(
+    WeightModal, 
+    {
+      onSubmit: (weight: number) => {
+        if (updateAddWeight(weight.toString())) {
+          clean()
+        }
+      },
+    },
+  )
 }
 
 function toggleWrapping() {
@@ -310,31 +314,6 @@ async function fetchNutrition() {
                 @input="(v) => isNumber(Number(v)) && mutateConsumable({ [field.key]: Number(v) })"
               />
             </template>
-          
-            <div class="flex w-full">
-              <CustomInput
-                :value="addWeightQuery"
-                :error="errors.weights_g"
-                class="w-full"
-                type="calculate"
-                label="Add weight (g)"
-                @input="handleAddWeightChange"
-                @enter-down="updateAddWeight"
-              />
-          
-
-              <div
-                v-if="!errors.weight_g && addWeightQuery"
-                class="p-2 rounded"
-              >
-                <button
-                  class="bg-secondary rounded p-3"
-                  @click="updateAddWeight"
-                >
-                  <CheckIcon class-name="text-grad-text size-5 stroke-2" />
-                </button>
-              </div>
-            </div>
 
             <div
               v-auto-animate
@@ -343,11 +322,18 @@ async function fetchNutrition() {
               <button
                 v-for="weight, index in consumable.data.weights_g"
                 :key="index"
-                class="px-3 py-0.5 font-bold rounded w-fit text-sm"
+                class="px-3 py-0.75 font-bold rounded-md w-fit text-sm"
                 :class="weight===consumable.data.weight_g ? 'bg-secondary text-grad-text ring-2 ring-secondary ring-offset-2' : 'text-secondary bg-secondary/10'"
                 @click="()=>handleWeightChange(weight)"
               >
                 {{ `${weight}g` }}
+              </button>
+
+              <button
+                class="px-2 py-0.75 font-bold rounded-md w-fit text-sm text-secondary bg-secondary/10 flex items-center justify-center"
+                @click="showAddWeightModal"
+              >
+                <PlusIcon class-name="w-4 h-4 stroke-2" />
               </button>
             </div>
 
