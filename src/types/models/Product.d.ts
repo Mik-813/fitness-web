@@ -10,4 +10,9 @@ interface Product {
   // price?: number
 }
 
+interface ProductGenerator {
+  title: string
+  features: NutrientKey[]
+}
+
 type NutrientKey = 'kcal_100g' | 'carbs_100g' | 'protein_100g' | 'fat_100g' | 'sugar_100g' | 'fiber_100g'

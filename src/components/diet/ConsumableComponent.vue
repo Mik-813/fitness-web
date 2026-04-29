@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import millify from 'millify'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { endpoints } from '$src/api/endpoints'
 import CheckIcon from '$src/components/icons/CheckIcon.vue'
 import ChevronDown from '$src/components/icons/ChevronDownIcon.vue'
+import SparkIcon from '$src/components/icons/SparkIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
 import Slider from '$src/components/reusable/SliderComponent.vue'
+import ThrobberComponent from '$src/components/reusable/ThrobberComponent.vue'
 import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
 import { isNumber } from '$src/utils/is-number'
@@ -52,6 +54,14 @@ watch(consumableModel, (newValue) => {
   }
 })
 
+const nutrition = computed(() => endpoints.generateNutrition({
+  title: consumable.data.title,
+  features: props.nutrientFields.map(field => field.key),
+}).use(undefined, false))
+
+const computedNutritionLoading = computed(() => nutrition.value?.isLoading)
+
+
 const isWrapped = ref(true)
 const isNutriListOpen = ref(false)
 
@@ -61,7 +71,6 @@ const errors = ref<ConsumableError>({})
 
   
 async function mutateConsumable(prop: Partial<Consumable>) {
-  // that wes not supposed to work, what?
   const newData = {
     ...consumable.data,
     ...prop,
@@ -182,6 +191,17 @@ async function overrideExistingProduct() {
     customToast.error('Couldn\'t override product')
   }
 }
+
+async function fetchNutrition() {
+  if (!nutrition.value) return
+  const res = await nutrition.value.execute()
+  if (res.data) {
+    mutateConsumable(res.data as Partial<Consumable>)
+  }
+  else {
+    customToast.error('Couldn\'t fetch nutrition')
+  }
+}
 </script>
 
 <template>
@@ -226,90 +246,113 @@ async function overrideExistingProduct() {
         
         <template v-if="!isWrapped">
           <div>
-            <CustomInput
-              :value="consumable.data.title"
-              :error="errors.title"
-              label="Title"
-              type="text"
-              @input="handleTitleChange"
-            />
+            <div class="flex gap-2 items-center">
+              <div class="flex-1">
+                <CustomInput
+                  :value="consumable.data.title"
+                  :error="errors.title"
+                  label="Title"
+                  type="text"
+                  @input="handleTitleChange"
+                />
+              </div>
 
-            <span
-              v-if="errors.needs_recreate"
-              class="text-xs px-1"
+              <div class="pl-2 pr-1 ">
+                <button
+                  class="flex rounded-lg hover:scale-105 ring-2 ring-primary/10 hover:ring-primary/20 transition-all p-2"
+                  title="Auto-fill nutrients"
+                  :disabled="computedNutritionLoading"
+                  @click="fetchNutrition"
+                >
+                  <ThrobberComponent
+                    v-if="computedNutritionLoading"
+                    class="w-6 h-6"
+                  />
+
+                  <SparkIcon
+                    v-else
+                    class="w-6 h-6"
+                  />
+                </button>
+              </div>
+
+              <span
+                v-if="errors.needs_recreate"
+                class="text-xs px-1"
+              >
+                You can either 
+                <button
+                  class="text-primary"
+                  @click="() => onUseExistingProduct(tempTitle, consumable.data)"
+                >
+                  use existing product
+                </button>
+                or
+                <button
+                  class="text-primary"
+                  @click="overrideExistingProduct"
+                >
+                  override the product
+                </button>
+              </span>
+            </div>
+
+            <template
+              v-for="field in nutrientFields"
+              :key="field.key"
             >
-              You can either 
-              <button
-                class="text-primary"
-                @click="() => onUseExistingProduct(tempTitle, consumable.data)"
-              >
-                use existing product
-              </button>
-              or
-              <button
-                class="text-primary"
-                @click="overrideExistingProduct"
-              >
-                override the product
-              </button>
-            </span>
-          </div>
+              <CustomInput
+                v-if="settings.data?.[field.key]"
+                :value="consumable.data[field.key]"
+                :error="errors[field.key]"
+                type="calculate"
+                :label="`${field.title} (${field.unit}/${field.per})`"
+                @input="(v) => isNumber(Number(v)) && mutateConsumable({ [field.key]: Number(v) })"
+              />
+            </template>
+          
+            <div class="flex w-full">
+              <CustomInput
+                :value="addWeightQuery"
+                :error="errors.weights_g"
+                class="w-full"
+                type="calculate"
+                label="Add weight (g)"
+                @input="handleAddWeightChange"
+                @enter-down="updateAddWeight"
+              />
+          
 
-          <template
-            v-for="field in nutrientFields"
-            :key="field.key"
-          >
-            <CustomInput
-              v-if="settings.data?.[field.key]"
-              :value="consumable.data[field.key]"
-              :error="errors[field.key]"
-              type="calculate"
-              :label="`${field.title} (${field.unit}/${field.per})`"
-              @input="(v) => isNumber(Number(v)) && mutateConsumable({ [field.key]: Number(v) })"
-            />
-          </template>
-          
-          <div class="flex w-full">
-            <CustomInput
-              :value="addWeightQuery"
-              :error="errors.weights_g"
-              class="w-full"
-              type="calculate"
-              label="Add weight (g)"
-              @input="handleAddWeightChange"
-              @enter-down="updateAddWeight"
-            />
-          
+              <div
+                v-if="!errors.weight_g && addWeightQuery"
+                class="p-2 rounded"
+              >
+                <button
+                  class="bg-secondary rounded p-3"
+                  @click="updateAddWeight"
+                >
+                  <CheckIcon class-name="text-grad-text size-5 stroke-2" />
+                </button>
+              </div>
+            </div>
 
             <div
-              v-if="!errors.weight_g && addWeightQuery"
-              class="p-2 rounded"
+              v-auto-animate
+              class="flex gap-2 pt-3 px-1"
             >
               <button
-                class="bg-secondary rounded p-3"
-                @click="updateAddWeight"
+                v-for="weight, index in consumable.data.weights_g"
+                :key="index"
+                class="px-3 py-0.5 font-bold rounded w-fit text-sm"
+                :class="weight===consumable.data.weight_g ? 'bg-secondary text-grad-text ring-2 ring-secondary ring-offset-2' : 'text-secondary bg-secondary/10'"
+                @click="()=>handleWeightChange(weight)"
               >
-                <CheckIcon class-name="text-grad-text size-5 stroke-2" />
+                {{ `${weight}g` }}
               </button>
             </div>
-          </div>
 
-          <div
-            v-auto-animate
-            class="flex gap-2 pt-3 px-1"
-          >
-            <button
-              v-for="weight, index in consumable.data.weights_g"
-              :key="index"
-              class="px-3 py-0.5 font-bold rounded w-fit text-sm"
-              :class="weight===consumable.data.weight_g ? 'bg-secondary text-grad-text ring-2 ring-secondary ring-offset-2' : 'text-secondary bg-secondary/10'"
-              @click="()=>handleWeightChange(weight)"
-            >
-              {{ `${weight}g` }}
-            </button>
+            <div class="mb-4" />
           </div>
-
-          <div class="mb-4" />
         </template>
 
         <Slider

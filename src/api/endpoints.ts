@@ -51,6 +51,7 @@ export const endpoints = {
   getAdminStats             : () => createRequest<MessageResponse, ApiError>(GET, '/api/admin/stats'),
   getSettings               : () => createRequest<Settings, ApiError>(GET, '/api/settings'),
   updateSettings            : (body: Partial<Settings>) => createRequest<Settings, ApiError, Partial<Settings>>(PUT, '/api/settings', body),
+  generateNutrition         : (body: ProductGenerator) => createRequest<Omit<Product, 'user_id'>, ApiError, ProductGenerator>(POST, '/api/products/generate-nutrition', body),
 }
 
 export const edbApi = { getFilteredExericises: (filters: ExerciseFilters) => createEdbRequest<DbExercisesPage, ApiError>(GET, `/api/v1/exercises/filter?${new URLSearchParams(filters as Record<string, any>).toString()}`) }
