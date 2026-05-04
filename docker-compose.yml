@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  fitness-web:
+    build:
+      context: .
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        - VITE_API_EDB_URL=${VITE_API_EDB_URL}
+    container_name: fitness-web
+    restart: unless-stopped
+    networks:
+      - caddy
+    labels:
+      caddy: ${HOST_URL}
+      caddy.reverse_proxy: "{{upstreams 80}}"
+
+networks:
+  caddy:
+    external: true
