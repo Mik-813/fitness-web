@@ -1,7 +1,5 @@
 import axios, { type Method, type AxiosError, type InternalAxiosRequestConfig, type AxiosInstance } from 'axios'
 import { reactive, ref, type UnwrapRef } from 'vue'
-import router from '$src/router'
-
 
 export const GET = 'GET'
 export const POST = 'POST'
@@ -40,7 +38,10 @@ api.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
-      router.push('/')
+      // should be dynamically imported, because "settings" is a top level component which needs additional time to load
+      import('$src/router').then(({ default: router }) => {
+        router.push('/')
+      })
       return new Promise(() => {})
     }
     return Promise.reject(error)
