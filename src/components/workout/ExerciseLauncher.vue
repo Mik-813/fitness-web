@@ -63,7 +63,7 @@ onClickOutside(dropdownContainer, () => {
 const exactExerciseMatch = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) return false
-  return props.exercises.some(c => c.title.toLowerCase() === query)
+  return props.exercises.some(c => c.exercise.name.toLowerCase() === query)
 })
 
 const showLocateButton = computed(() => exactExerciseMatch.value && filteredExercises.value.length === 0)

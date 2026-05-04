@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "target": "ES2020",
     "noEmit": true,

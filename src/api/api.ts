@@ -1,5 +1,6 @@
 import axios, { type Method, type AxiosError, type InternalAxiosRequestConfig, type AxiosInstance } from 'axios'
 import { reactive, ref, type UnwrapRef } from 'vue'
+import router from '$src/router'
 
 
 export const GET = 'GET'
@@ -39,9 +40,7 @@ api.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
-      import('$src/router').then(({ default: router }) => {
-        router.push('/')
-      })
+      router.push('/')
       return new Promise(() => {})
     }
     return Promise.reject(error)

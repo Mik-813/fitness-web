@@ -76,15 +76,15 @@ const handleKeydown = (e: KeyboardEvent) => {
           v-for="(item, index) in props.items"
           :key="index"
           class="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl p-4 text-left transition-all duration-200 hover:scale-105 active:scale-95"
-          @click="item.onClick"
+          @click="()=>item.onClick?.()"
         >
           <div class="flex items-center space-x-3">
             <div
               class="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden"
-              :class="item.data.className"
+              :class="item.data?.className"
             >
-              <div class="bg-gradient-to-br from-white/40 to-white/10 w-full h-full p-2">
-                <component :is="item.data.Icon" />
+              <div class="bg-linear-to-br from-white/40 to-white/10 w-full h-full p-2">
+                <component :is="item.data?.Icon" />
               </div>
             </div>
 

@@ -41,7 +41,8 @@ interface InputSettingView {
   component: typeof InputSetting
   title: string
   subtitle: string
-  state?: string
+  state?: string | number
+  placeholder?: string
   onChange?: (value: string) => void
 }
 

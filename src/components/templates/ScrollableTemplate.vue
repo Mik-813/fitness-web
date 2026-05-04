@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, PropType } from 'vue'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-vue'
 
 const props = defineProps<{ disableScroll?: boolean, }>()
@@ -48,7 +48,7 @@ onMounted(() => {
     ref="osRef"
     class="custom-os-behavior"
     :class="{ 'is-scrolling': isScrolling }"
-    :options="osOptions"
+    :options="(osOptions as any)"
   >
     <slot />
   </OverlayScrollbarsComponent>

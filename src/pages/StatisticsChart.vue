@@ -83,7 +83,6 @@ const options = {
   <VueApexCharts
     width="100%"
     height="300"
-    :options="options"
     :series="series"
   />
 </template>
