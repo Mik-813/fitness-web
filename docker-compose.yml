@@ -10,7 +10,7 @@ services:
     container_name: fitness-web
     restart: unless-stopped
     networks:
-      - caddy
+      - caddy_network
     labels:
       caddy: ${HOST_URL}
       caddy.reverse_proxy: "{{upstreams 80}}"
