@@ -11,6 +11,7 @@ services:
       - caddy_network
     labels:
       caddy: ${HOST_URL}
+      caddy.handle: /*
       caddy.reverse_proxy: "{{upstreams 80}}"
 
 networks:
