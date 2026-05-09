@@ -77,63 +77,64 @@ const authButtonIdx = ref(0)
     />
   </header>
 
-  <div class="flex items-center justify-between bg-linear-to-r from-grad-start to-grad-end text-white flex-1 z-20 h-full">
+  <div class="flex bg-linear-to-r from-grad-start to-grad-end text-white flex-1 z-20 h-full overflow-hidden">
     <div class="flex-1 relative h-full overflow-hidden hidden md:block">
       <FallingGlass />
     </div>
 
-    <div class="flex flex-1 items-center justify-center p-6">
-      <div class="w-full max-w-md bg-white rounded-2xl p-8 shadow-xl text-primary">
-        <div class="text-center mb-6">
-          <h2 class="text-2xl font-extrabold">
-            {{ isLogin ? 'Welcome back' : 'Create account' }}
-          </h2>
+    <div class="flex-1 overflow-y-auto h-full">
+      <div class="min-h-full flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white rounded-2xl p-8 shadow-xl text-primary">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-extrabold">
+              {{ isLogin ? 'Welcome back' : 'Create account' }}
+            </h2>
 
-          <p class="text-gray-500 text-sm mt-2 font-medium">
-            {{ isLogin ? 'Enter your details to access your routine' : 'Sign up to kickstart your fitness journey' }}
-          </p>
-        </div>
-
-        <form 
-          v-auto-animate 
-          class="flex flex-col gap-2" 
-          @submit.prevent="handleSubmit"
-        >
-          <CustomInput
-            v-model:value="form.email"
-            label="Email"
-            :error="errors.email"
-            :force-label-active="true"
-          />
-
-          <CustomInput
-            v-model:value="form.password"
-            type="password"
-            label="Password"
-            :error="errors.password"
-            :force-label-active="true"
-          />
-
-          <div
-            v-if="isLogin"
-            class="flex justify-end"
-          >
-            <button
-              type="button"
-              class="text-sm font-bold text-primary hover:text-secondary transition-colors px-2"
-            >
-              Forgot password?
-            </button>
+            <p class="text-gray-500 text-sm mt-2 font-medium">
+              {{ isLogin ? 'Enter your details to access your routine' : 'Sign up to kickstart your fitness journey' }}
+            </p>
           </div>
 
-          <button
-            type="submit"
-            class="w-full mt-2 bg-linear-to-r from-grad-start to-grad-end text-grad-text font-bold py-3 rounded-lg"
+          <form 
+            v-auto-animate 
+            class="flex flex-col gap-2" 
+            @submit.prevent="handleSubmit"
           >
-            {{ isLogin ? 'Sign In' : 'Sign Up' }}
-          </button>
+            <CustomInput
+              v-model:value="form.email"
+              label="Email"
+              :error="errors.email"
+              :force-label-active="true"
+            />
 
-          <!-- <div class="relative flex items-center py-2 mt-1">
+            <CustomInput
+              v-model:value="form.password"
+              type="password"
+              label="Password"
+              :error="errors.password"
+              :force-label-active="true"
+            />
+
+            <div
+              v-if="isLogin"
+              class="flex justify-end"
+            >
+              <button
+                type="button"
+                class="text-sm font-bold text-primary hover:text-secondary transition-colors px-2"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full mt-2 bg-linear-to-r from-grad-start to-grad-end text-grad-text font-bold py-3 rounded-lg"
+            >
+              {{ isLogin ? 'Sign In' : 'Sign Up' }}
+            </button>
+
+            <!-- <div class="relative flex items-center py-2 mt-1">
             <div class="flex-grow border-t border-gray-200" />
 
             <span class="shrink-0 px-4 text-sm text-gray-400 font-medium">
@@ -152,20 +153,21 @@ const authButtonIdx = ref(0)
             Google
           </button> -->
 
-          <div class="text-center text-sm font-medium mt-4">
-            <span class="text-gray-500">
-              {{ isLogin ? "Don't have an account?" : "Already have an account?" }}
-            </span>
+            <div class="text-center text-sm font-medium mt-4">
+              <span class="text-gray-500">
+                {{ isLogin ? "Don't have an account?" : "Already have an account?" }}
+              </span>
 
-            <button
-              type="button"
-              class="font-bold hover:text-secondary ml-1 transition-colors"
-              @click="toggleMode"
-            >
-              {{ isLogin ? 'Register now' : 'Sign in instead' }}
-            </button>
-          </div>
-        </form>
+              <button
+                type="button"
+                class="font-bold hover:text-secondary ml-1 transition-colors"
+                @click="toggleMode"
+              >
+                {{ isLogin ? 'Register now' : 'Sign in instead' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>

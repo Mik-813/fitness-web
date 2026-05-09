@@ -35,7 +35,7 @@ button:disabled {
   font-style: normal;
 }
 
-html, body {
+body {
   overflow: hidden;
   overscroll-behavior: none;
 }
