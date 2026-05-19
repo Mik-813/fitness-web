@@ -4,7 +4,7 @@ import Fuse from 'fuse.js'
 import { ref, computed, onMounted, watch } from 'vue'
 import SortIcon from '../icons/SortIcon.vue'
 import XMarkIcon from '../icons/XMarkIcon.vue'
-import { edbApi } from '$src/api/endpoints'
+import { endpoints } from '$src/api/endpoints'
 import FilterIcon from '$src/components/icons/FilterIcon.vue'
 import MagnifierIcon from '$src/components/icons/MagnifierIcon.vue'
 import DropdownComponent from '$src/components/reusable/DropdownComponent.vue'
@@ -21,7 +21,7 @@ const props = defineProps<{
 }>()
 
 const filters = ref<ExerciseFilters>({})
-const dbExercises = computed(() => edbApi.getFilteredExericises(filters.value).use(undefined)) 
+const dbExercises = computed(() => endpoints.getFilteredDbExericises(filters.value).use(undefined)) 
 
 const cachedExercises = ref<DbExercise[]>([])
 

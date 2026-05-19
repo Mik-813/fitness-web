@@ -8,7 +8,7 @@ createApp(App)
   .use(
     VueReCaptcha, 
     {
-      siteKey: '6LfCNlosAAAAAN6ym_NZg_IXdk09bnoaz6qfGmxz',
+      siteKey: import.meta.env.RECAPTCHA_SITE_KEY,
       loaderOptions: { explicitRenderParameters: { badge: 'bottomleft' } }, 
     },
   )

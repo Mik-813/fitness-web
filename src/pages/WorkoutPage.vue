@@ -2,7 +2,7 @@
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { useDateFormat } from '@vueuse/core'
 import { computed, ref } from 'vue'
-import { endpoints, edbApi } from '$src/api/endpoints'
+import { endpoints } from '$src/api/endpoints'
 import PlusIcon from '$src/components/icons/PlusIcon.vue'
 import TrashIcon from '$src/components/icons/TrashIcon.vue'
 import NoData from '$src/components/NoData.vue'

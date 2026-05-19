@@ -44,11 +44,11 @@ body {
   z-index: 9999 !important;
 }
 
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .grecaptcha-badge {
     visibility: hidden !important;
   }
-}
+} */
 
 .fade-enter-active,
 .fade-leave-active {

@@ -3,14 +3,15 @@ services:
     build:
       context: .
       args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
-        - VITE_API_EDB_URL=${VITE_API_EDB_URL}
+        - APP_URL=${APP_URL}
+        - APP_PORT=${APP_PORT}
+        - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
     container_name: fitness-web
     restart: unless-stopped
     networks:
       - caddy_network
     labels:
-      caddy: ${HOST_URL}
+      caddy: ${APP_URL}
       caddy.handle: /*
       caddy.handle.reverse_proxy: "{{upstreams 80}}"
 

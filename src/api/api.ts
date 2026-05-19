@@ -6,19 +6,9 @@ export const POST = 'POST'
 export const PUT = 'PUT'
 export const DELETE = 'DELETE'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 export const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${import.meta.env.APP_URL}${import.meta.env.APP_PORT ? `:${import.meta.env.APP_PORT}` : ''}`,
   headers: { 
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-})
-
-const API_EDB_URL = import.meta.env.VITE_API_EDB_URL
-export const apiExereciseDB = axios.create({
-  baseURL: API_EDB_URL,
-  headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
@@ -56,7 +46,7 @@ export const createEdbRequest = <TRes, TErr, TBody = void>(
   method,
   url,
   body,
-  apiExereciseDB,
+  api,
 )
 
 export const createRequest = <TRes, TErr, TBody = void>(
