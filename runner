@@ -22,15 +22,27 @@ copy_env() (
 )
 
 stop() {
+  cd "$PROJECT_DIR"
+  docker compose --profile dev --profile prod down
+}
+
+destroy() {
+  cd "$PROJECT_DIR"
+  docker compose --profile dev --profile prod down -v --rmi all
 }
 
 dev() {
   stop
   copy_env
+  cd "$PROJECT_DIR"
+  docker compose --profile dev up -d --build
 }
 
 prod() {
-  (stop)
+  stop
+  copy_env
+  cd "$PROJECT_DIR"
+  docker compose --profile prod up -d --build
 }
 
 case "$1" in

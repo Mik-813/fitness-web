@@ -1,7 +1,32 @@
 services:
-  fitness-web:
+  fitness-web-dev:
+    profiles:
+      - dev
     build:
       context: .
+      target: development
+      args:
+        - APP_URL=${APP_URL}
+        - APP_PORT=${APP_PORT}
+        - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
+    container_name: fitness-web
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - caddy_network
+    labels:
+      caddy: ${APP_URL}
+      caddy.handle: /*
+      caddy.handle.reverse_proxy: "{{upstreams 5173}}"
+
+  fitness-web-prod:
+    profiles:
+      - prod
+    build:
+      context: .
+      target: production
       args:
         - APP_URL=${APP_URL}
         - APP_PORT=${APP_PORT}
