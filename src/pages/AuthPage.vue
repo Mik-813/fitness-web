@@ -22,6 +22,7 @@ const form = ref({
 const router = useRouter()
 const toggleMode = () => {
   isLogin.value = !isLogin.value
+  authButtonIdx.value = isLogin.value ? 0 : 1
 }
 
 const errors = ref({
@@ -46,7 +47,6 @@ const handleSubmit = async () => {
 
   if (data?.token) {
     router.push(paths.diet)
-    // window.location.href = paths.diet
   }
 }
 
@@ -64,7 +64,6 @@ async function loginWithGoogle() {
     window.open(data.url, '_blank')
 
     if (data.session_id) {
-      // Clear again to prevent a race condition if multiple clicks resolved simultaneously
       if (googleAuthInterval) {
         clearInterval(googleAuthInterval)
       }
