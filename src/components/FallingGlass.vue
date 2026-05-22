@@ -2,48 +2,51 @@
 import * as THREE from 'three'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
+const wrapperRef = ref<HTMLDivElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 let renderer: THREE.WebGLRenderer
 let animationFrameId: number
 let handleResize: () => void
-let clock: THREE.Clock
+let timer: THREE.Timer
+const isReady = ref(false)
 
 onMounted(() => {
-  if (!containerRef.value) return
+  if (!wrapperRef.value || !containerRef.value) return
 
-  // Setup Scene and Camera
+  
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(
     60,
-    containerRef.value.clientWidth / containerRef.value.clientHeight,
+    wrapperRef.value.clientWidth / wrapperRef.value.clientHeight,
     0.1,
     100,
   )
   camera.position.z = 15
 
-  clock = new THREE.Clock()
+  timer = new THREE.Timer()
+  timer.connect(document)
 
-  // Setup WebGL Renderer
+  
   renderer = new THREE.WebGLRenderer({
     alpha: true,
     antialias: true, 
   })
-  renderer.setSize(containerRef.value.clientWidth, containerRef.value.clientHeight)
+  renderer.setSize(wrapperRef.value.clientWidth, wrapperRef.value.clientHeight)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   containerRef.value.appendChild(renderer.domElement)
 
-  // Generate Minecraft-style glass texture programmatically
+  
   const createGlassTexture = () => {
     const canvas = document.createElement('canvas')
     canvas.width = 16
     canvas.height = 16
     const ctx = canvas.getContext('2d')!
 
-    // Inner transparent glass
+    
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'
     ctx.fillRect(0, 0, 16, 16)
 
-    // Solid white border with full opacity
+    
     ctx.fillStyle = 'rgba(255, 255, 255, 1.0)'
     ctx.fillRect(0, 0, 16, 1)
     ctx.fillRect(0, 15, 16, 1)
@@ -51,7 +54,7 @@ onMounted(() => {
     ctx.fillRect(15, 0, 1, 16)
 
     const texture = new THREE.CanvasTexture(canvas)
-    texture.magFilter = THREE.NearestFilter // Pixelated blocky look
+    texture.magFilter = THREE.NearestFilter 
     texture.minFilter = THREE.NearestFilter
     return texture
   }
@@ -63,7 +66,7 @@ onMounted(() => {
     depthWrite: false,
   })
 
-  // Perfect cubes for the Minecraft block feel
+  
   const geometry = new THREE.BoxGeometry(1, 1, 1)
   const shardCount = 80
   const instancedMesh = new THREE.InstancedMesh(geometry, material, shardCount)
@@ -77,7 +80,7 @@ onMounted(() => {
     const angle = Math.random() * Math.PI * 2
     const y = (Math.random() - 0.5) * 40
 
-    // Uniform scaling for blocks to simulate depth
+    
     const scale = 0.5 + Math.random() * 1.5
 
     tempColor.setHex(0xffffff)
@@ -89,7 +92,7 @@ onMounted(() => {
       y,
       scale,
       vy: -0.01 - Math.random() * 0.02,
-      // Slower angular speed for outer particles enhances the hurricane feel
+      
       angularSpeed: 0.002 + (1 / radius) * 0.01,
     })
   }
@@ -97,8 +100,11 @@ onMounted(() => {
   instancedMesh.instanceColor!.needsUpdate = true
   scene.add(instancedMesh)
 
+  let firstFrameRendered = false
+
   const animate = () => {
     animationFrameId = requestAnimationFrame(animate)
+    timer.update()
 
     for (let i = 0; i < shardCount; i++) {
       const data = shardsData[i]
@@ -106,7 +112,7 @@ onMounted(() => {
       data.y += data.vy
       data.angle += data.angularSpeed
 
-      // Loop shards back to the top when they fall past the screen bounds
+      
       if (data.y < -20) {
         data.y = 20
         data.radius = 2 + Math.random() * 10
@@ -126,14 +132,25 @@ onMounted(() => {
 
     instancedMesh.instanceMatrix.needsUpdate = true
     renderer.render(scene, camera)
+
+    
+    if (!firstFrameRendered) {
+      firstFrameRendered = true
+      setTimeout(
+        () => {
+          isReady.value = true
+        }, 
+        50,
+      )
+    }
   }
 
   animate()
 
   handleResize = () => {
-    if (!containerRef.value || !renderer) return
-    const width = containerRef.value.clientWidth
-    const height = containerRef.value.clientHeight
+    if (!wrapperRef.value || !renderer) return
+    const width = wrapperRef.value.clientWidth
+    const height = wrapperRef.value.clientHeight
     camera.aspect = width / height
     camera.updateProjectionMatrix()
     renderer.setSize(width, height)
@@ -145,14 +162,27 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (animationFrameId) cancelAnimationFrame(animationFrameId)
   if (handleResize) window.removeEventListener('resize', handleResize)
+  if (timer) timer.dispose()
   if (renderer) renderer.dispose()
 })
 </script>
 
 <template>
   <div 
-    ref="containerRef" 
-    class="absolute inset-0 w-full h-full pointer-events-none" 
+    ref="wrapperRef" 
+    class="absolute inset-0 w-full h-full pointer-events-none"
     style="-webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%); mask-image: linear-gradient(to right, black 80%, transparent 100%);"
-  />
+  >
+    <transition
+      enter-active-class="transition-all duration-1000 ease-out"
+      enter-from-class="opacity-0 blur-md"
+      enter-to-class="opacity-100 blur-none"
+    >
+      <div 
+        v-show="isReady"
+        ref="containerRef" 
+        class="w-full h-full"
+      />
+    </transition>
+  </div>
 </template>
