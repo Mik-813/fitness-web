@@ -130,7 +130,7 @@ const uniqueId = randomString(8)
         ref="inputElement"
         :value="value"
         :type="inputType"
-        class="w-full ring-1 ring-primary/10 bg-pane-bg focus:ring-2 rounded-lg px-3 py-3 transition-all duration-200 outline-none text-sm"
+        class="w-full ring-1 ring-primary/10 bg-pane-bg focus:ring-2 rounded-lg px-3 py-3 transition-all duration-200 outline-none text-sm placeholder:text-xs placeholder:text-gray-400"
         :placeholder="placeholder"
         :class="[
           mergedError 

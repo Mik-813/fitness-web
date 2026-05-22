@@ -140,14 +140,16 @@ const authButtonIdx = ref(0)
             <CustomInput
               v-model:value="form.email"
               label="Email"
+              placeholder="Enter your email"
               :error="errors.email"
               :force-label-active="true"
             />
 
             <CustomInput
-              v-model:value="form.password"
+              v-model:value="form.password" 
               type="password"
               label="Password"
+              placeholder="Enter your password"
               :error="errors.password"
               :force-label-active="true"
             />
