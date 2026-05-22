@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onClickOutside } from '@vueuse/core'
 import Fuse from 'fuse.js'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import MagnifierIcon from '$src/components/icons/MagnifierIcon.vue'
 import PlusIcon from '$src/components/icons/PlusIcon.vue'
 import XMarkIcon from '$src/components/icons/XMarkIcon.vue'
@@ -91,9 +91,16 @@ const handleCreate = () => {
   closeDropdown()
 }
 
-onMounted(() => {
-  searchInput.value?.focus()
-})
+watch(
+  () => props.visible,
+  async (isVisible) => {
+    if (isVisible) {
+      await nextTick()
+      searchInput.value?.focus()
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
