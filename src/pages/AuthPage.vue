@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { ref, onUnmounted } from 'vue'
 import { useReCaptcha } from 'vue-recaptcha-v3'
 import { useRouter } from 'vue-router'
@@ -20,10 +19,16 @@ const form = ref({
 })
 
 const router = useRouter()
-const toggleMode = () => {
-  isLogin.value = !isLogin.value
-  authButtonIdx.value = isLogin.value ? 0 : 1
+const transitionName = ref('auth-slide-right')
+
+const setMode = (login: boolean) => {
+  if (isLogin.value === login) return
+  transitionName.value = login ? 'auth-slide-right' : 'auth-slide-left'
+  isLogin.value = login
+  authButtonIdx.value = login ? 0 : 1
 }
+
+const toggleMode = () => setMode(!isLogin.value)
 
 const errors = ref({
   email: '',
@@ -107,8 +112,8 @@ const authButtonIdx = ref(0)
     <AnimatedTabs2
       v-model="authButtonIdx"
       :items="[
-        { title: 'Login', onClick: () => {authButtonIdx = 0; isLogin = true} },
-        { title: 'Register', onClick: () => {authButtonIdx = 1; isLogin = false} },
+        { title: 'Login', onClick: () => setMode(true) },
+        { title: 'Register', onClick: () => setMode(false) },
       ]"
     />
   </header>
@@ -121,18 +126,40 @@ const authButtonIdx = ref(0)
     <div class="flex-1 overflow-y-auto h-full">
       <div class="min-h-full flex flex-col items-center justify-center p-6 gap-6">
         <div class="w-full max-w-md bg-white rounded-2xl p-8 shadow-xl text-primary">
-          <div class="text-center mb-6">
-            <h2 class="text-2xl font-extrabold">
-              {{ isLogin ? 'Welcome back' : 'Create account' }}
-            </h2>
+          <div class="mb-6 grid w-full relative overflow-hidden">
+            <Transition
+              :name="transitionName"
+              mode="out-in"
+            >
+              <div
+                v-if="isLogin"
+                class="col-start-1 row-start-1 flex flex-col items-center text-center"
+              >
+                <h2 class="text-2xl font-extrabold">
+                  Welcome back
+                </h2>
 
-            <p class="text-gray-500 text-sm mt-2 font-medium">
-              {{ isLogin ? 'Enter your details to access your routine' : 'Sign up to kickstart your fitness journey' }}
-            </p>
+                <p class="text-gray-500 text-sm mt-2 font-medium">
+                  Enter your details to access your routine
+                </p>
+              </div>
+
+              <div
+                v-else
+                class="col-start-1 row-start-1 flex flex-col items-center text-center"
+              >
+                <h2 class="text-2xl font-extrabold">
+                  Create account
+                </h2>
+
+                <p class="text-gray-500 text-sm mt-2 font-medium">
+                  Sign up to kickstart your fitness journey
+                </p>
+              </div>
+            </Transition>
           </div>
 
-          <form 
-            v-auto-animate 
+          <form
             class="flex flex-col gap-2" 
             @submit.prevent="handleSubmit"
           >
@@ -154,15 +181,18 @@ const authButtonIdx = ref(0)
             />
 
             <div
-              v-if="isLogin"
-              class="flex justify-end"
+              class="grid w-full transition-[grid-template-rows] duration-200"
+              :class="isLogin ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
             >
-              <button
-                type="button"
-                class="text-sm font-bold text-primary hover:text-secondary transition-colors px-2"
-              >
-                Forgot password?
-              </button>
+              <div class="flex justify-end overflow-hidden">
+                <button
+                  type="button"
+                  class="text-sm font-bold text-primary hover:text-secondary transition-all duration-200 origin-center px-2"
+                  :class="isLogin ? 'scale-100 opacity-100' : 'scale-0 opacity-0'"
+                >
+                  Forgot password?
+                </button>
+              </div>
             </div>
 
             <button
@@ -191,23 +221,50 @@ const authButtonIdx = ref(0)
               Google
             </button>
 
-            <div class="text-center text-sm font-medium mt-4">
-              <span class="text-gray-500">
-                {{ isLogin ? "Don't have an account?" : "Already have an account?" }}
-              </span>
-
-              <button
-                type="button"
-                class="font-bold hover:text-secondary ml-1 transition-colors"
-                @click="toggleMode"
+            <div class="grid w-full relative overflow-hidden mt-4">
+              <Transition
+                :name="transitionName"
+                mode="out-in"
               >
-                {{ isLogin ? 'Register now' : 'Sign in instead' }}
-              </button>
+                <div
+                  v-if="isLogin"
+                  class="col-start-1 row-start-1 flex justify-center text-sm font-medium"
+                >
+                  <span class="text-gray-500">
+                    Don't have an account?
+                  </span>
+
+                  <button
+                    type="button"
+                    class="font-bold hover:text-secondary ml-1 transition-colors"
+                    @click="toggleMode"
+                  >
+                    Register now
+                  </button>
+                </div>
+
+                <div
+                  v-else
+                  class="col-start-1 row-start-1 flex justify-center text-sm font-medium"
+                >
+                  <span class="text-gray-500">
+                    Already have an account?
+                  </span>
+
+                  <button
+                    type="button"
+                    class="font-bold hover:text-secondary ml-1 transition-colors"
+                    @click="toggleMode"
+                  >
+                    Sign in instead
+                  </button>
+                </div>
+              </Transition>
             </div>
           </form>
         </div>
 
-        <div class="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-8 py-5 shadow-xl flex flex-col items-center gap-5 transition-transform duration-300">
+        <div class="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-8 py-5 shadow-xl flex flex-col items-center gap-5 transition-transform duration-200">
           <p class="text-xs font-bold text-white/70 uppercase tracking-widest">
             Powered By
           </p>
@@ -216,7 +273,7 @@ const authButtonIdx = ref(0)
             <a
               href="https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb"
               target="_blank"
-              class="group bg-black/10 scale-95 hover:scale-100 transition-all duration-300 ring-2 ring-white/20 hover:ring-white/40 rounded-xl py-6 w-full flex items-center justify-center gap-5"
+              class="group bg-black/10 scale-95 hover:scale-100 transition-all duration-200 ring-2 ring-white/20 hover:ring-white/40 rounded-xl py-6 w-full flex items-center justify-center gap-5"
             >
               <img
                 src="https://camo.githubusercontent.com/e13d685af45f18f42cb07b36f1862677f69618f9a85ff9437f40bfeee8c1ad69/68747470733a2f2f63646e2e657865726369736564622e6465762f657865726369736564622f616e64726f69642d6368726f6d652d353132783531322e706e67"
@@ -252,3 +309,24 @@ const authButtonIdx = ref(0)
     </div>
   </div>
 </template>
+
+<style scoped>
+.auth-slide-left-enter-active,
+.auth-slide-left-leave-active,
+.auth-slide-right-enter-active,
+.auth-slide-right-leave-active {
+  transition: all 0.3s ease-in-out;
+}
+
+.auth-slide-left-enter-from,
+.auth-slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.auth-slide-left-leave-to,
+.auth-slide-right-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+</style>
