@@ -5,4 +5,12 @@ interface AuthResponse {
 
 interface MessageResponse { message: string, }
 
-interface UrlResponse { url: string, }
+interface GoogleRedirectResponse {
+  url: string
+  session_id: string
+}
+
+interface GooglePendingResponse {
+  message?: string
+  token: string
+}

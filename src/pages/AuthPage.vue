@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useReCaptcha } from 'vue-recaptcha-v3'
 import { useRouter } from 'vue-router'
 import { endpoints } from '$src/api/endpoints'
@@ -50,13 +50,49 @@ const handleSubmit = async () => {
   }
 }
 
+let googleAuthInterval: ReturnType<typeof setInterval> | undefined
+
 async function loginWithGoogle() {
+  if (googleAuthInterval) {
+    clearInterval(googleAuthInterval)
+  }
+
   const recaptchaToken = await executeRecaptcha?.('google_login') ?? ''
   const { data, error } = await endpoints.authGoogleRedirect({ recaptcha_token: recaptchaToken }).invoke()
+  
   if (data?.url) {
-    window.location.href = data.url
+    window.open(data.url, '_blank')
+
+    if (data.session_id) {
+      // Clear again to prevent a race condition if multiple clicks resolved simultaneously
+      if (googleAuthInterval) {
+        clearInterval(googleAuthInterval)
+      }
+
+      googleAuthInterval = setInterval(
+        async () => {
+          const { data: pendingData } = await endpoints.authGooglePending({ session_id: data.session_id }).invoke()
+      
+          if (pendingData?.token) {
+            localStorage.setItem('token', pendingData.token)
+            clearInterval(googleAuthInterval)
+            router.push(paths.diet)
+          }
+          else if (pendingData?.message !== 'Pending') {
+            clearInterval(googleAuthInterval)
+          }
+        }, 
+        2000,
+      )
+    }
   }
 }
+
+onUnmounted(() => {
+  if (googleAuthInterval) {
+    clearInterval(googleAuthInterval)
+  }
+})
 
 const authButtonIdx = ref(0)
 </script>
@@ -135,24 +171,24 @@ const authButtonIdx = ref(0)
               {{ isLogin ? 'Sign In' : 'Sign Up' }}
             </button>
 
-            <!-- <div class="relative flex items-center py-2 mt-1">
-            <div class="flex-grow border-t border-gray-200" />
+            <div class="relative flex items-center py-2 mt-1">
+              <div class="grow border-t border-gray-200" />
 
-            <span class="shrink-0 px-4 text-sm text-gray-400 font-medium">
-              Or continue with
-            </span>
+              <span class="shrink-0 px-4 text-sm text-gray-400 font-medium">
+                Or continue with
+              </span>
 
-            <div class="flex-grow border-t border-gray-200" />
-          </div>
+              <div class="grow border-t border-gray-200" />
+            </div>
 
-          <button
-            type="button"
-            class="flex items-center justify-center gap-3 w-full border border-gray-200 bg-white text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-50 transition-colors"
-            @click="loginWithGoogle"
-          >
-            <GoogleIcon class="w-5 h-5" />
-            Google
-          </button> -->
+            <button
+              type="button"
+              class="flex items-center justify-center gap-3 w-full border border-gray-200 bg-white text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-50 transition-colors"
+              @click="loginWithGoogle"
+            >
+              <GoogleIcon class="w-5 h-5" />
+              Google
+            </button>
 
             <div class="text-center text-sm font-medium mt-4">
               <span class="text-gray-500">
