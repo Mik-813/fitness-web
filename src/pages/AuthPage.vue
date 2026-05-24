@@ -9,6 +9,7 @@ import LogoIcon from '$src/components/icons/LogoIcon.vue'
 import AnimatedTabs2 from '$src/components/inputs/AnimatedTabs2.vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
 import { paths } from '$src/router'
+import { customToast } from '$src/utils/custom-toast'
 
 const isLogin = ref(true)
 const { executeRecaptcha } = useReCaptcha() ?? { executeRecaptcha: undefined }
@@ -19,11 +20,11 @@ const form = ref({
 })
 
 const router = useRouter()
-const transitionName = ref('auth-slide-right')
+const transitionName = ref('slide-right')
 
 const setMode = (login: boolean) => {
   if (isLogin.value === login) return
-  transitionName.value = login ? 'auth-slide-right' : 'auth-slide-left'
+  transitionName.value = login ? 'slide-right' : 'slide-left'
   isLogin.value = login
   authButtonIdx.value = login ? 0 : 1
 }
@@ -45,8 +46,10 @@ const handleSubmit = async () => {
     password: form.value.password,
     recaptcha_token: recaptchaToken,
   }).invoke()
-  errors.value.email = (error?.errors as any)?.email.at(0) ?? ''
-  errors.value.password = (error?.errors as any)?.password.at(0) ?? ''
+  const _errors = error?.errors as (AuthRequest | undefined)
+  errors.value.email = _errors?.email?.at(0) ?? ''
+  errors.value.password = _errors?.password?.at(0) ?? ''
+  _errors?.recaptcha_token && customToast.error('reCAPTCHA verification failed. Please try again.')
 
   localStorage.setItem('token', data?.token ?? '')
 
@@ -181,26 +184,28 @@ const authButtonIdx = ref(0)
             />
 
             <div
-              class="grid w-full transition-[grid-template-rows] duration-200"
+              class="grid w-full transition-[grid-template-rows] duration-300"
               :class="isLogin ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
             >
               <div class="flex justify-end overflow-hidden">
                 <button
                   type="button"
-                  class="text-sm font-bold text-primary hover:text-secondary transition-all duration-200 origin-center px-2"
-                  :class="isLogin ? 'scale-100 opacity-100' : 'scale-0 opacity-0'"
+                  class="text-sm font-bold text-primary hover:text-secondary duration-300 origin-center px-2"
+                  :class="isLogin ? 'scale-100' : 'scale-0'"
                 >
                   Forgot password?
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              class="w-full mt-2 bg-linear-to-r from-grad-start to-grad-end text-grad-text font-bold py-3 rounded-lg"
-            >
-              {{ isLogin ? 'Sign In' : 'Sign Up' }}
-            </button>
+            <div class="transition-transform duration-200">
+              <button
+                type="submit"
+                class="w-full mt-2 bg-linear-to-r from-grad-start to-grad-end text-grad-text font-bold py-3 rounded-lg shadow-none hover:shadow-lg duration-500"
+              >
+                {{ isLogin ? 'Sign In' : 'Sign Up' }}
+              </button>
+            </div>
 
             <div class="relative flex items-center py-2 mt-1">
               <div class="grow border-t border-gray-200" />
@@ -230,17 +235,19 @@ const authButtonIdx = ref(0)
                   v-if="isLogin"
                   class="col-start-1 row-start-1 flex justify-center text-sm font-medium"
                 >
-                  <span class="text-gray-500">
-                    Don't have an account?
-                  </span>
+                  <div class="flex gap-1 sm:gap-0.5 flex-col sm:flex-row">
+                    <span class="text-gray-500">
+                      Don't have an account?
+                    </span>
 
-                  <button
-                    type="button"
-                    class="font-bold hover:text-secondary ml-1 transition-colors"
-                    @click="toggleMode"
-                  >
-                    Register now
-                  </button>
+                    <button
+                      type="button"
+                      class="font-bold hover:text-secondary ml-1 transition-colors"
+                      @click="toggleMode"
+                    >
+                      Register now
+                    </button>
+                  </div>
                 </div>
 
                 <div
@@ -264,7 +271,7 @@ const authButtonIdx = ref(0)
           </form>
         </div>
 
-        <div class="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-8 py-5 shadow-xl flex flex-col items-center gap-5 transition-transform duration-200">
+        <div class="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-8 py-5 shadow-xl flex flex-col items-center gap-5">
           <p class="text-xs font-bold text-white/70 uppercase tracking-widest">
             Powered By
           </p>
@@ -282,7 +289,7 @@ const authButtonIdx = ref(0)
               >
 
               <div class="flex items-center">
-                <span class="font-bold text-3xl tracking-tighter text-white drop-shadow-md leading-none group-hover:opacity-80 transition-opacity">
+                <span class="font-bold text-3xl tracking-tighter text-white drop-shadow-md leading-none transition-opacity">
                   Exercise<span class="opacity-80">
                     DB
                   </span>
@@ -309,24 +316,3 @@ const authButtonIdx = ref(0)
     </div>
   </div>
 </template>
-
-<style scoped>
-.auth-slide-left-enter-active,
-.auth-slide-left-leave-active,
-.auth-slide-right-enter-active,
-.auth-slide-right-leave-active {
-  transition: all 0.3s ease-in-out;
-}
-
-.auth-slide-left-enter-from,
-.auth-slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-.auth-slide-left-leave-to,
-.auth-slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-</style>

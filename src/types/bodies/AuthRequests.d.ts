@@ -1,10 +1,4 @@
-interface LoginRequest {
-  email: string
-  password: string
-  recaptcha_token: string
-}
-
-interface RegisterRequest {
+interface AuthRequest {
   email: string
   password: string
   recaptcha_token: string
