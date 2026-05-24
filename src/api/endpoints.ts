@@ -7,9 +7,9 @@ import { createEdbRequest, createRequest as createRequest, DELETE, GET, POST, PU
 export const endpoints = {
   getExercises              : (date?: Date                              ) => createRequest<Exercise[], ApiError>(                                          GET,    `/api/exercises?${`record_date=${useDateFormat(date, 'YYYY-MM-DD').value}`}`),
   getDates                  : (params?: DateFilters                     ) => createRequest<Record<string, string[]>, ApiError>(                            GET,    `/api/dates?${new URLSearchParams(params as any).toString()}`),
-  getConsumables            : (date?: Date                              ) => createRequest<Consumable[], ApiError>(                                        GET,    `/api/consumables?${date ?? `record_date=${useDateFormat(date, 'YYYY-MM-DD').value}`}`),
-  authRegister              : (body: AuthRequest                    ) => createRequest<AuthResponse, ApiError, AuthRequest>(                       POST,   '/api/auth/register', body),
-  authLogin                 : (body: AuthRequest                       ) => createRequest<AuthResponse, ApiError, AuthRequest>(                          POST,   '/api/auth/login', body),
+  getConsumables            : (date?: Date                              ) => createRequest<Consumable[], ApiError>(                                        GET,    `/api/consumables?${`record_date=${useDateFormat(date, 'YYYY-MM-DD').value}`}`),
+  authRegister              : (body: AuthRequest                        ) => createRequest<AuthResponse, ApiError, AuthRequest>(                           POST,   '/api/auth/register', body),
+  authLogin                 : (body: AuthRequest                        ) => createRequest<AuthResponse, ApiError, AuthRequest>(                           POST,   '/api/auth/login', body),
   authVerify                : (body: VerifyRequest                      ) => createRequest<MessageResponse, ApiError, VerifyRequest>(                      POST,   '/api/auth/verify', body),
   authEmailSendResetPassword: (body: SendResetPasswordRequest           ) => createRequest<MessageResponse, ApiError, SendResetPasswordRequest>(           POST,   '/api/auth/email/send-reset-password', body),
   authResetPassword         : (body: ResetPasswordRequest               ) => createRequest<MessageResponse, ApiError, ResetPasswordRequest>(               POST,   '/api/auth/reset-password', body),
