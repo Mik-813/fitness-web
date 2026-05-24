@@ -8,6 +8,7 @@ import GoogleIcon from '$src/components/icons/GoogleIcon.vue'
 import LogoIcon from '$src/components/icons/LogoIcon.vue'
 import AnimatedTabs2 from '$src/components/inputs/AnimatedTabs2.vue'
 import CustomInput from '$src/components/inputs/CustomInput.vue'
+import ScrollableTemplate from '$src/components/templates/ScrollableTemplate.vue'
 import { paths } from '$src/router'
 import { customToast } from '$src/utils/custom-toast'
 
@@ -126,7 +127,7 @@ const authButtonIdx = ref(0)
       <FallingGlass />
     </div>
 
-    <div class="flex-1 overflow-y-auto h-full">
+    <ScrollableTemplate class="flex-1 h-full">
       <div class="min-h-full flex flex-col items-center justify-center p-6 gap-6">
         <div class="w-full max-w-md bg-white rounded-2xl p-8 shadow-xl text-primary">
           <div class="mb-6 grid w-full relative overflow-hidden">
@@ -313,6 +314,6 @@ const authButtonIdx = ref(0)
           </div>
         </div>
       </div>
-    </div>
+    </ScrollableTemplate>
   </div>
 </template>

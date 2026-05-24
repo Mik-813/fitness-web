@@ -149,7 +149,7 @@ const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field =
 </script>
 
 <template>
-  <div class="sticky top-0 z-30 bg-linear-to-r from-grad-start to-grad-end py-4 px-2 flex flex-col gap-4">
+  <div class="sticky top-0 z-30 bg-linear-to-r from-grad-start to-grad-end pt-2 pb-4 px-2 flex flex-col gap-4">
     <Stats
       :stats="filteredNutritionData.map(f => ({
         title: f.title,
@@ -173,7 +173,7 @@ const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field =
         :weighted-products="weightedProducts.data"
         :nutrient-fields="filteredNutritionData"
         @title-update="updateWeightedTitles"
-        @weights-update="weightedProducts.execute"
+        @update-weighted-products="weightedProducts.execute"
         @use-existing-product="tryRereateConsumable"
         @remove="tryRemoveConsumable"
       />
@@ -209,17 +209,25 @@ const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field =
       <div class="fixed right-0 bottom-0 m-4">
         <div class="flex flex-col gap-2">
           <button
-            class="flex gap-2 shadow-lg shadow-primary/40 bg-linear-to-r from-grad-start to-grad-end transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+            class="flex gap-2 shadow border-4 border-pane-bg/50 bg-primary transition-transform duration-200 hover:-translate-x-1 text-grad-text p-2.5 rounded-xl font-bold items-center"
             @click="isProductLauncherOpen = true"
           >
-            <Plus class="stroke-2" /> Add product
+            <Plus class="stroke-2" />
+
+            <span class="hidden sm:block">
+              Add product
+            </span>
           </button>
 
           <button
-            class="flex gap-2 shadow-lg shadow-red-600/40 bg-linear-to-r from-red-600 to-orange-600 transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+            class="flex gap-2 shadow border-4 border-pane-bg/50 bg-red-600 transition-transform duration-200 hover:-translate-x-1 text-grad-text p-2.5 rounded-xl font-bold items-center"
             @click="tryResetDate"
           >
-            <TrashIcon class="stroke-2" /> Reset date
+            <TrashIcon class="stroke-2" />
+
+            <span class="hidden sm:block">
+              Reset date
+            </span>
           </button>
         </div>
       </div>

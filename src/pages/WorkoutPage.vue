@@ -15,10 +15,6 @@ import { settings } from '$src/states/state'
 import { customToast } from '$src/utils/custom-toast'
 import { popElementById } from '$src/utils/pop-indentifiable'
 
-
-const handleRecord = (time: number) => {
-  customToast.error(time.toString())
-}
 const exercises = computed(() => endpoints.getExercises(currentDate.value).use(undefined))
 
 async function tryRemoveExercise(exercise: Exercise){
@@ -86,7 +82,7 @@ async function tryResetDate() {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen w-full relative overflow-hidden">
+  <div class="flex flex-col h-dvh w-full relative overflow-hidden">
     <div class="z-10 shrink-0">
       <TimerComponent :limit="settings.data?.rest_limit ?? 0" />
     </div>
@@ -132,17 +128,25 @@ async function tryResetDate() {
         <div class="fixed right-0 bottom-0 m-4">
           <div class="flex flex-col gap-2">
             <button
-              class="flex gap-2 shadow-lg shadow-primary/40 bg-linear-to-r from-grad-start to-grad-end transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+              class="flex gap-2 shadow border-4 border-pane-bg/50 bg-primary transition-transform duration-200 hover:-translate-x-1 text-grad-text p-2.5 rounded-xl font-bold items-center"
               @click="isExerciseLauncherOpen = true"
             >
-              <PlusIcon class="stroke-2" /> Add exercise
+              <PlusIcon class="stroke-2" />
+
+              <span class="hidden sm:block">
+                Add exercise
+              </span>
             </button>
 
             <button
-              class="flex gap-2 shadow-lg shadow-red-600/40 bg-linear-to-r from-red-600 to-orange-600 transition-transform duration-200 hover:-translate-x-1 text-grad-text p-4 rounded-lg font-bold items-center"
+              class="flex gap-2 shadow border-4 border-pane-bg/50 bg-red-600 transition-transform duration-200 hover:-translate-x-1 text-grad-text p-2.5 rounded-xl font-bold items-center"
               @click="tryResetDate"
             >
-              <TrashIcon class="stroke-2" /> Reset date
+              <TrashIcon class="stroke-2" />
+
+              <span class="hidden sm:block">
+                Reset date
+              </span>
             </button>
           </div>
         </div>

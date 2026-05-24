@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import { ref, onMounted, computed, PropType } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-vue'
 
 const props = defineProps<{ disableScroll?: boolean, }>()
@@ -68,6 +68,7 @@ onMounted(() => {
 
 .custom-os-behavior .os-scrollbar-handle {
   background: var(--color-primary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-main-bg), transparent 80%);
 }
 
 .custom-os-behavior [data-overlayscrollbars-viewport] {

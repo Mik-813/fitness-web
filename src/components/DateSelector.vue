@@ -56,10 +56,10 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
 
 <template>
   <div class="flex justify-center">
-    <div class="flex items-center gap px-3">
+    <div class="flex items-center gap px-2">
       <button 
         :disabled="isPrevDisabled"
-        class="disabled:text-grad-text/30 text-grad-text/70 hover:text-grad-text transition-colors p-1"
+        class="disabled:text-grad-text/30 text-grad-text/70 hover:text-grad-text transition-colors"
         @click="prevDate"
       >
         <ChevronDownIcon class-name="size-5 rotate-90" />
@@ -80,7 +80,7 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
           >
             <DateIcon />
 
-            <span class="tabular-nums font-medium tracking-tight">
+            <span class="tabular-nums font-medium tracking-tight text-sm">
               {{ formattedDate }}
             </span>
           </button>
@@ -89,7 +89,7 @@ const isNextDisabled = computed(() => currentIndex.value === -1 || currentIndex.
 
       <button 
         :disabled="isNextDisabled"
-        class="disabled:text-grad-text/30 text-grad-text/70 hover:text-grad-text transition-colors p-1"
+        class="disabled:text-grad-text/30 text-grad-text/70 hover:text-grad-text transition-colors"
         @click="nextDate"
       >
         <ChevronDownIcon class-name="size-5 rotate-270" />

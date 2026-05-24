@@ -35,11 +35,6 @@ button:disabled {
   font-style: normal;
 }
 
-body {
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
 .grecaptcha-badge {
   z-index: 9999 !important;
 }

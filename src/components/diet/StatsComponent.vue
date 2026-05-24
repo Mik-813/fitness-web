@@ -41,7 +41,7 @@ function prevStat() {
 
     <div 
       v-if="stats.length > 1"
-      class="flex md:hidden items-center w-full text-white gap-2"
+      class="flex md:hidden items-center w-full text-white"
     >
       <button 
         class="text-grad-text/70 hover:text-grad-text transition-colors"
@@ -50,8 +50,16 @@ function prevStat() {
         <ChevronDownIcon class-name="size-5 rotate-90" />
       </button>
 
-      <div class="grid flex-1 relative select-none">
-        <Transition :name="transitionName">
+      <div 
+        class="grid flex-1 relative select-none px-2"
+        style="
+          mask-image: linear-gradient(to right, transparent 0, black 8px, black calc(100% - 8px), transparent 100%);
+          -webkit-mask-image: linear-gradient(to right, transparent 0, black 8px, black calc(100% - 8px), transparent 100%);"
+      >
+        <Transition
+          :name="transitionName"
+          mode="out-in"
+        >
           <div 
             :key="currentIndex"
             class="col-start-1 row-start-1 w-full"
@@ -74,29 +82,3 @@ function prevStat() {
     </div>
   </template>
 </template>
-
-<style scoped>
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: all 0.2s ease-out;
-}
-
-.slide-left-enter-from {
-  opacity: 0;
-  transform: translateX(20px);
-}
-.slide-left-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-.slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-.slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-</style>

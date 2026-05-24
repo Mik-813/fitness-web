@@ -131,7 +131,7 @@ function getRouteIndex() {
     />
   </header>
 
-  <div class="flex sm:hidden justify-center bg-linear-to-r from-grad-start to-grad-end text-white pb-2 px-4">
+  <div class="flex sm:hidden bg-linear-to-r from-grad-start to-grad-end opacity-85 py-1 text-white sm:px-4">
     <DateSelector
       v-model="currentDate"
       :available-dates="dates"

@@ -18,7 +18,7 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen w-full overflow-hidden bg-main-bg">
+  <div class="flex flex-col h-dvh w-full overflow-hidden bg-main-bg">
     <Header v-if="isAuthenticated" />
 
     <router-view />

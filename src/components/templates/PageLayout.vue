@@ -26,7 +26,7 @@ watch(currentDate, (newDate, oldDate) => {
 </script>
 
 <template>
-  <div class="grid w-full relative overflow-hidden h-screen z-0">
+  <div class="grid w-full relative overflow-hidden h-dvh z-0">
     <Transition :name="transitionName">
       <div
         v-if="!hide"

@@ -37,7 +37,7 @@ const props = defineProps<{
     per: string
   }>
   onUseExistingProduct: (title: string, consumable: Consumable) => void
-  onWeightsUpdate: () => void
+  onUpdateWeightedProducts: () => void
   onTitleUpdate: (title: string, oldTitle: string) => void
   onRemove: (consumable: Consumable) => void
 }>()
@@ -90,7 +90,13 @@ async function mutateConsumable(prop: Partial<Consumable>) {
       }
       return res
     }, 
-    debounce: 500, 
+    debounce: 500,
+    onSuccess: () => {
+      props.onUpdateWeightedProducts()
+    },
+    onError: () => {
+      customToast.error('Couldn\'t update product')
+    },
   })
 }
 
@@ -128,7 +134,6 @@ function handleConsumptionChange(value: number) {
 
 
 function handleWeightChange(value: number) {
-  props.onWeightsUpdate()
   errors.value.weight_g = ''
   if (value < consumable.data.consumption_g) {
     customToast.error('Weight can\'t be less than consumption')
@@ -145,7 +150,6 @@ function updateAddWeight(value: string): boolean {
     customToast.error('Weight should be a valid number')
     return false
   }
-  props.onWeightsUpdate()
   errors.value.weights_g = ''
   if (consumable.data.weights_g.includes(weight)) {
     customToast.error('Weight already exists')
@@ -263,7 +267,7 @@ async function fetchNutrition() {
 
               <div class="pl-2 pr-1 ">
                 <button
-                  class="flex rounded-lg hover:scale-105 ring-2 ring-primary/10 hover:ring-primary/20 transition-all p-2"
+                  class="flex rounded-lg hover:scale-105 hover:ring-primary/20 transition-all p-2.5 ring-1 hover:ring-2 ring-primary/10"
                   title="Auto-fill nutrients"
                   :disabled="computedNutritionLoading"
                   @click="fetchNutrition"
