@@ -114,6 +114,8 @@ async function tryResetDate() {
         Loading...
       </span>
 
+      <div class="h-32 shrink-0" />
+
       <template #overlay>
         <ExerciseLauncher
           :visible="isExerciseLauncherOpen"

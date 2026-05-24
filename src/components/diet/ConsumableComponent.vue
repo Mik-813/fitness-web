@@ -321,7 +321,7 @@ async function fetchNutrition() {
 
             <div
               v-auto-animate
-              class="flex gap-2 pt-3 px-1"
+              class="flex gap-2 pt-3 pb-1 px-1 overflow-auto"
             >
               <button
                 v-for="weight, index in consumable.data.weights_g"

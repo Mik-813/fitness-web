@@ -1,5 +1,6 @@
+<!-- eslint-disable @typescript-eslint/naming-convention -->
 <script setup lang="ts">
-import { watch, ref, nextTick, computed } from 'vue'
+import { watch, ref, computed } from 'vue'
 import { endpoints } from '$src/api/endpoints'
 import ChevronDownIcon from '$src/components/icons/ChevronDownIcon.vue'
 import ClockIcon from '$src/components/icons/ClockIcon.vue'
@@ -172,24 +173,9 @@ function addSet() {
 }
 
 const isWrapped = ref(true)
-const isTransitioning = ref(false)
 
-async function toggleWrapping() {
-  if (!document.startViewTransition) {
-    isWrapped.value = !isWrapped.value
-    return
-  }
-
-  isTransitioning.value = true
-  await nextTick()
-
-  const transition = document.startViewTransition(() => {
-    isWrapped.value = !isWrapped.value
-  })
-
-  transition.finished.finally(() => {
-    isTransitioning.value = false
-  })
+function toggleWrapping() {
+  isWrapped.value = !isWrapped.value
 }
 
 const tags = computed(() => {
@@ -206,7 +192,6 @@ const tags = computed(() => {
     <div class="flex items-center justify-between gap-2">
       <button
         class="text-gray-500"
-        :style="isTransitioning ? { viewTransitionName: `exercise-toggle-${exercise.data.id}` } : {}"
         @click="toggleWrapping"
       >
         <div :style="{ rotate: isWrapped ? '-90deg' : '0deg', transition: 'rotate 0.2s' }">
@@ -219,14 +204,12 @@ const tags = computed(() => {
         :src="exercise.data.exercise.gifUrl ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
         :alt="exercise.data.exercise.name"
         class="rounded-2xl size-20"
-        :style="isTransitioning ? { viewTransitionName: `exercise-img-${exercise.data.id}` } : {}"
       >
 
-      <div class="flex flex-col gap-2 px-2">
+      <div class="flex flex-col gap-2 px-2 overflow-hidden w-full">
         <span
           class="first-letter:uppercase font-semibold w-fit"
           :class="exercise.data.exercise.name ? 'text-gray-800' : 'text-gray-400'"
-          :style="isTransitioning ? { viewTransitionName: `exercise-title-${exercise.data.id}` } : {}"
         >
           {{ exercise.data.exercise.name || "(Empty title)" }}
         </span>
@@ -254,7 +237,6 @@ const tags = computed(() => {
         :src="exercise.data.exercise.gifUrl ?? 'https://placehold.co/150x150/555555/ffffff?text=N'" 
         :alt="exercise.data.exercise.name"
         class="w-full max-w-60 aspect-square self-center sm:self-start shrink-0 ml-4 mr-2"
-        :style="isTransitioning ? { viewTransitionName: `exercise-img-${exercise.data.id}` } : {}"
       >
 
       <div class="flex flex-col gap-3 flex-1 p-2">

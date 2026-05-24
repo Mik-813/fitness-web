@@ -18,7 +18,7 @@ const osOptions = computed(() => {
       },
     }
   }
-  return {}
+  return { overflow: { x: 'hidden' } }
 })
 
 const onScroll = () => {

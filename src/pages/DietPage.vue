@@ -192,6 +192,8 @@ const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field =
       Loading...
     </span>
 
+    <div class="h-32 shrink-0" />
+
     <template #overlay>
       <ProductLauncher
         :visible="isProductLauncherOpen"
