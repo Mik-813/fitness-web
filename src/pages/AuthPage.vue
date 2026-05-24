@@ -40,7 +40,7 @@ const errors = ref({
 const handleSubmit = async () => {
 
   const auth = isLogin.value ? endpoints.authLogin : endpoints.authRegister
-  const recaptchaToken = await executeRecaptcha?.(isLogin.value ? 'login' : 'register') ?? ''
+  const recaptchaToken = await executeRecaptcha?.('auth') ?? ''
   
   const { data, error } = await auth({
     email: form.value.email,
@@ -53,9 +53,13 @@ const handleSubmit = async () => {
   _errors?.recaptcha_token && customToast.error('reCAPTCHA verification failed. Please try again.')
 
   localStorage.setItem('token', data?.token ?? '')
+  localStorage.setItem('verified_at', data?.user.email_verified_at ?? '')
 
   if (data?.token) {
-    router.push(paths.diet)
+    if (!data.user.email_verified_at) {
+      router.push(paths.diet)
+    }
+    router.push(paths.verification)
   }
 }
 

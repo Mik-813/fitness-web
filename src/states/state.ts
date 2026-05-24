@@ -1,3 +1,3 @@
 import { endpoints } from '$src/api/endpoints'
 
-export const settings = endpoints.getSettings().use(undefined, !!localStorage.getItem('token'))
+export const settings = endpoints.getSettings().use(undefined, !!localStorage.getItem('token') && !!localStorage.getItem('verified_at'))

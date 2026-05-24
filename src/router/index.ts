@@ -4,12 +4,16 @@ import DietPage from '$src/pages/DietPage.vue'
 import NotFound from '$src/pages/NotFound.vue'
 import StatisticsChart from '$src/pages/StatisticsChart.vue'
 import WorkoutPage from '$src/pages/WorkoutPage.vue'
+import VerificationPage from '$src/pages/VerificationPage.vue'
+import VerificationStatusPage from '$src/pages/VerificationStatusPage.vue'
 
 export const paths = {
   home: '/',
   statistics: '/statistics',
   diet: '/diet',
   workout: '/workout',
+  verification: '/verification',
+  verificationStatus: '/verification/status',
   notFound: '/:pathMatch(.*)*',
 }
 
@@ -31,6 +35,14 @@ const routes = [
     component: WorkoutPage, 
   },
   {
+    path: paths.verification,
+    component: VerificationPage, 
+  },
+  {
+    path: paths.verificationStatus,
+    component: VerificationStatusPage, 
+  },
+  {
     path: paths.notFound,
     component: NotFound, 
   },
@@ -43,10 +55,14 @@ const router = createRouter({
 
 router.beforeEach((to, from) => {
   const isAuthenticated = !!localStorage.getItem('token')
+  const isVerified = !!localStorage.getItem('verified_at')
   if (to.path === paths.home && isAuthenticated) {
-    return paths.diet
+    if (isVerified) {
+      return paths.diet
+    }
+    return paths.verification
   }
-  if (to.path !== paths.home && !isAuthenticated) {
+  if (to.path !== paths.home && !isAuthenticated && to.path !== paths.verificationStatus) {
     return paths.home
   }
 })
