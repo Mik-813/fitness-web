@@ -56,7 +56,7 @@ const handleSubmit = async () => {
   localStorage.setItem('verified_at', data?.user.email_verified_at ?? '')
 
   if (data?.token) {
-    if (!data.user.email_verified_at) {
+    if (data.user.email_verified_at) {
       router.push(paths.diet)
     }
     router.push(paths.verification)

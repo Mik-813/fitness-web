@@ -18,7 +18,7 @@ const route = useRoute()
 watch(() => route.path, () => {
   isAuthenticated.value = !!localStorage.getItem('token')
   isVerified.value = !!localStorage.getItem('verified_at')
-  isInScope.value = [paths.verification, paths.diet, paths.statistics].includes(route.path)
+  isInScope.value = [paths.workout, paths.diet, paths.statistics].includes(route.path)
 })
 </script>
 
