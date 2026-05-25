@@ -21,7 +21,6 @@ onMounted(() => {
 
       if (data?.email_verified_at) {
         clearInterval(verificationInterval)
-        localStorage.setItem('verified_at', data.email_verified_at)
         customToast.success('Email verified successfully!')
         router.push(paths.diet)
       }
@@ -48,9 +47,7 @@ const handleResend = async () => {
 
 const handleLogout = async () => {
   await endpoints.authLogout().invoke()
-  localStorage.removeItem('token')
-  localStorage.removeItem('verified_at')
-  router.push(paths.home)
+  router.push(paths.auth)
 }
 </script>
 

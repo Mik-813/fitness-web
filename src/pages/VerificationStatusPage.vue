@@ -17,14 +17,6 @@ const verifyState = token ? endpoints.authVerify({ token }).use(undefined) : und
 const isSuccess = computed(() => !!verifyState?.data)
 const errorMessage = computed(() => verifyState?.error?.message ?? (!token ? 'Invalid verification link.' : 'Verification failed. The link might be expired or invalid.'))
 
-if (verifyState) {
-  watch(() => verifyState.data, (data) => {
-    if (data) {
-      localStorage.setItem('verified_at', new Date().toISOString())
-    }
-  })
-}
-
 const handleContinue = () => {
   if (isSuccess.value) {
     router.push(paths.diet)
@@ -67,7 +59,7 @@ const handleContinue = () => {
               
               <div
                 v-else-if="isSuccess"
-                class="w-full mt-4 rounded-lg border-2 border-green-200 bg-green-50 p-4 text-sm font-medium text-green-700"
+                class="w-full mt-4 rounded-lg border-2 border-green-600 bg-green-50 p-4 text-sm font-medium text-green-700"
               >
                 Your email has been successfully verified!
               </div>

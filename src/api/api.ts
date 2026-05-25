@@ -23,21 +23,6 @@ api.interceptors.request.use(
   async (error) => Promise.reject(error),
 )
 
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      // should be dynamically imported, because "settings" is a top level component which needs additional time to load
-      import('$src/router').then(({ default: router }) => {
-        router.push('/')
-      })
-      return new Promise(() => {})
-    }
-    return Promise.reject(error)
-  },
-)
-
 export const createEdbRequest = <TRes, TErr, TBody = void>(
   method: Method,
   url: string,
@@ -113,12 +98,9 @@ export const createRequest = <TRes, TErr, TBody = void>(
   return {
     invoke: async (overrideBody?: TBody) => _execute(overrideBody),
 
-    invoke3: async (overrideBody?: TBody): Promise<TRes> => {
-      const { data, error } = await _execute(overrideBody)
-      if (error) {
-        throw error
-      }
-      return data!
+    intercept: function (interceptor: () => void) {
+      interceptor()
+      return this
     },
 
     use: <TDefData>(defaultData: TDefData, requestOnInit = true) => {

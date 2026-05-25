@@ -140,7 +140,7 @@ function openSetModal(set: ExSet, index: number, initialFocus?: 'weight' | 'reps
 
 function openTimeModal(set: ExSet, index: number) {
   let seconds = set.rest_seconds ?? 0
-  if (seconds === 0 && settings.data?.auto_timer) {
+  if (seconds === 0 && settings.value.data?.auto_timer) {
     seconds = timerSeconds.value
   }
   showModal(
@@ -150,7 +150,7 @@ function openTimeModal(set: ExSet, index: number) {
       onRestChange: (rest_seconds: number) => mutateSet(index, { rest_seconds }),
     },
   )
-  settings.data?.auto_timer && stopTimer()
+  settings.value.data?.auto_timer && stopTimer()
 }
 
 
@@ -169,7 +169,7 @@ function addSet() {
   mutateExercise({ sets: [...sets, newSet] })
   openSetModal(newSet, newIndex, 'weight')
 
-  settings.data?.auto_timer && startTimer()
+  settings.value.data?.auto_timer && startTimer()
 }
 
 const isWrapped = ref(true)

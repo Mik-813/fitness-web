@@ -3,12 +3,13 @@ import AuthPage from '$src/pages/AuthPage.vue'
 import DietPage from '$src/pages/DietPage.vue'
 import NotFound from '$src/pages/NotFound.vue'
 import StatisticsChart from '$src/pages/StatisticsChart.vue'
-import WorkoutPage from '$src/pages/WorkoutPage.vue'
 import VerificationPage from '$src/pages/VerificationPage.vue'
 import VerificationStatusPage from '$src/pages/VerificationStatusPage.vue'
+import WorkoutPage from '$src/pages/WorkoutPage.vue'
 
 export const paths = {
   home: '/',
+  auth: '/auth',
   statistics: '/statistics',
   diet: '/diet',
   workout: '/workout',
@@ -19,7 +20,7 @@ export const paths = {
 
 const routes = [
   {
-    path: paths.home,
+    path: paths.auth,
     component: AuthPage, 
   },
   {
@@ -54,16 +55,11 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from) => {
-  const isAuthenticated = !!localStorage.getItem('token')
-  const isVerified = !!localStorage.getItem('verified_at')
-  if (to.path === paths.home && isAuthenticated) {
-    if (isVerified) {
+  if (to.path === paths.home) {
+    if (localStorage.getItem('token')) {
       return paths.diet
     }
-    return paths.verification
-  }
-  if (to.path !== paths.home && !isAuthenticated && to.path !== paths.verificationStatus) {
-    return paths.home
+    return paths.auth
   }
 })
 

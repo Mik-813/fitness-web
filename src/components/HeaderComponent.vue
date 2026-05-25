@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type Component, computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import LogoutIcon from './icons/LogoutIcon.vue'
 import AnimatedTabs2 from './inputs/AnimatedTabs2.vue'
 import { endpoints } from '$src/api/endpoints'
@@ -15,10 +16,34 @@ import ThreeLinesIcon from '$src/components/icons/ThreeLinesIcon.vue'
 import SwitchButtonGroup from '$src/components/inputs/SwitchButtonGroup.vue'
 import Sidebar from '$src/components/reusable/SidebarComponent.vue'
 import SettingsModal from '$src/components/settings/SettingsModal.vue'
-import router, { paths } from '$src/router'
+import { paths } from '$src/router'
 import { currentDate, dates } from '$src/states/date'
 import { exportCSV, importCSV } from '$src/utils/service-CSV'
 import { showModal } from '$src/utils/show-modal'
+
+
+const router = useRouter()
+async function getUser() {
+  if (!localStorage.getItem('token')) {
+    router.push(paths.auth)
+    return
+  }
+
+  const { data, error } = await endpoints.getUser().invoke()
+
+  if (error) {
+    await endpoints.authLogout().invoke()
+    router.push(paths.auth)
+    return
+  }
+
+  if (!data?.email_verified_at) {
+    router.push(paths.verification)
+    return
+  }
+}
+getUser()
+
 
 const buttons = [
   // {

@@ -145,7 +145,7 @@ const nutrientFieldsConfig = [
   { key: 'fiber_100g', title: 'Fiber', unit: 'g', per: '100g' },
 ] as const
 
-const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field => settings.data?.[field.key]))
+const filteredNutritionData = computed(() => nutrientFieldsConfig.filter(field => settings.value.data?.[field.key]))
 </script>
 
 <template>

@@ -53,13 +53,16 @@ const handleSubmit = async () => {
   _errors?.recaptcha_token && customToast.error('reCAPTCHA verification failed. Please try again.')
 
   localStorage.setItem('token', data?.token ?? '')
-  localStorage.setItem('verified_at', data?.user.email_verified_at ?? '')
-
   if (data?.token) {
-    if (data.user.email_verified_at) {
+    if (isLogin.value && data.user.email_verified_at) {
       router.push(paths.diet)
     }
-    router.push(paths.verification)
+    else {
+      router.push(paths.verification)
+    }
+  }
+  else if (!error) {
+    customToast.error('Something went wrong. Please check your credentials and try again.')
   }
 }
 
@@ -87,6 +90,7 @@ async function loginWithGoogle() {
       
           if (pendingData?.token) {
             localStorage.setItem('token', pendingData.token)
+            localStorage.setItem('verified_at', 'veriefied')
             clearInterval(googleAuthInterval)
             router.push(paths.diet)
           }

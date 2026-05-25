@@ -17,7 +17,7 @@ export const endpoints = {
   authGooglePending         : (body: GooglePendingRequest               ) => createRequest<GooglePendingResponse, ApiError, GooglePendingRequest>(         POST,   '/api/auth/google/pending', body),
   getAuthGoogleCallback     : (queryParams: string                      ) => createRequest<AuthResponse, ApiError>(                                        GET,    `/api/auth/google/callback${queryParams}`),
   authEmailSendVerification : (body: SendVerificationRequest            ) => createRequest<MessageResponse, ApiError, SendVerificationRequest>(            POST,   '/api/auth/email/send-verification', body),
-  authLogout                : (                                         ) => createRequest<MessageResponse, ApiError>(                                     POST,   '/api/auth/logout'),
+  authLogout                : (                                         ) => createRequest<MessageResponse, ApiError>(                                     POST,   '/api/auth/logout').intercept(() => localStorage.removeItem('token')),
   getUser                   : (                                         ) => createRequest<User, ApiError>(                                                GET,    '/api/user'),
   getWeightedProducts       : (                                         ) => createRequest<WeightedProduct[], ApiError>(                                   GET,    '/api/weighted-products'),
   getWeightedProduct        : (id: number                               ) => createRequest<WeightedProduct, ApiError>(                                     GET,    `/api/weighted-products/${id}`),
