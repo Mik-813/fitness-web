@@ -2,6 +2,7 @@ services:
   fitness-web-dev:
     profiles:
       - dev
+    user: "${CURRENT_UID:-1000}:${CURRENT_GID:-1000}"
     build:
       context: .
       target: development
@@ -13,7 +14,6 @@ services:
     restart: unless-stopped
     volumes:
       - .:/app
-      - /app/node_modules
     networks:
       - caddy_network
     labels:

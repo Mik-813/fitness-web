@@ -4,52 +4,63 @@ set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+export CURRENT_UID="$(id -u)"
+export CURRENT_GID="$(id -g)"
+
 help() {
   printf "Runner options:\n"
   printf "dev\t- (re)initialize development environment\n"
   printf "prod\t- (re)initialize production environment\n"
   printf "stop\t- shut down an environment\n"
   printf "destroy\t- remove environment\n"
-  printf "help\t\t- show this message\n"
+  printf "gen\t- generate node_modules using docker container\n"
+  printf "help\t- show this message\n"
 }
 
-copy_env() (
-  cd $PROJECT_DIR
-  
+copy_env() {
   if [ ! -f ".env" ]; then
     cp .env.example .env
   fi
-)
+}
 
 stop() {
-  cd "$PROJECT_DIR"
   docker compose --profile dev --profile prod down
 }
 
 destroy() {
-  cd "$PROJECT_DIR"
-  docker compose --profile dev --profile prod down -v --rmi all
+  local project=$(basename "$PWD" | tr '[:upper:]' '[:lower:]')
+  docker compose --profile dev --profile prod down -v --remove-orphans --timeout 0
+  docker volume rm -f $(docker volume ls -q | grep "^${project}_") 2>/dev/null || true
+  docker rmi -f $(docker images -q "${project}*") 2>/dev/null || true
+  docker rmi -f $(docker images --format '{{.Repository}}:{{.Tag}}' | grep "^${project}_") 2>/dev/null || true
 }
 
 dev() {
   stop
   copy_env
-  cd "$PROJECT_DIR"
+  gen
   docker compose --profile dev up -d --build
 }
 
 prod() {
   stop
   copy_env
-  cd "$PROJECT_DIR"
+  gen
   docker compose --profile prod up -d --build
 }
+
+gen() {
+  docker compose --profile dev run --rm --user "$CURRENT_UID:$CURRENT_GID" fitness-web-dev npm install
+}
+
+cd "$PROJECT_DIR"
 
 case "$1" in
   (dev) dev;;
   (prod) prod;;
   (stop) stop;;
   (destroy) destroy;;
+  (gen) gen;;
   (*) help;;
 esac
 

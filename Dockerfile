@@ -1,14 +1,12 @@
-FROM node:22-alpine AS base
+FROM node:22-alpine AS development
 WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-FROM base AS development
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
-FROM base AS build
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 COPY . .
 
 ARG APP_URL
