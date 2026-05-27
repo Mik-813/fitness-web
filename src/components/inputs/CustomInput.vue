@@ -49,9 +49,33 @@ onMounted(() => {
 
 function handleKeyDown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
+    if (props.type === 'calculate' && isValidExpression.value) {
+      calculateExpression()
+    }
     (e.target as HTMLInputElement).blur()
     props.onEnterDown?.(e.key)
   }
+}
+
+const isValidExpression = ref(false)
+
+
+function calculateExpression() {
+  if (!isValidExpression.value || value.value == null) return
+  let result: string
+  try {
+    result = Parser.evaluate(String(value.value)).toString()
+  }
+  catch {
+    return
+  }
+  result = Number(result) >= 0 ? result : '0'
+  value.value = result
+  if (inputElement.value) {
+    inputElement.value.value = result
+  }
+  isValidExpression.value = false
+  props.onInput?.(result)
 }
 
 function handleInput(e: Event) {
@@ -69,9 +93,12 @@ function handleInput(e: Event) {
   if (props.type === 'calculate') {
     inputValue = inputValue.replace(/[^0-9+\-*/().]/g, '')
     try {
-      inputValue = Parser.evaluate(inputValue).toString()
+      const evaled = Parser.evaluate(inputValue).toString()
+      isValidExpression.value = evaled != inputValue
     }
-    catch {}
+    catch {
+      isValidExpression.value = false
+    }
     target.value = inputValue
     value.value = inputValue
     props.onInput?.(inputValue)
@@ -136,7 +163,7 @@ const uniqueId = randomString(8)
           mergedError 
             ? 'border-red-200 focus:ring-red-500' 
             : 'border-gray-200 focus:ring-primary',
-          props.type === 'password' ? 'pr-10' : ''
+          (props.type === 'password' || props.type === 'calculate') ? 'pr-10' : ''
         ]"
         @keydown="handleKeyDown"
         @change="handleChange"
@@ -155,6 +182,16 @@ const uniqueId = randomString(8)
           :mode="passwordVisible ? 'normal' : 'slashed'"
           class-name="w-5 h-5 stroke-2"
         />
+      </button>
+
+      <button
+        v-if="props.type === 'calculate'"
+        type="button"
+        class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 bg-primary text-white font-bold rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
+        :disabled="!isValidExpression"
+        @click="calculateExpression"
+      >
+        =
       </button>
     </div>
     
