@@ -63,11 +63,4 @@ router.beforeEach((to, from) => {
   }
 })
 
-router.isReady().then(() => {
-  const path = localStorage.getItem('path')
-  if (!path) return
-  router.replace(path)
-  localStorage.removeItem('path')
-})
-
 export default router

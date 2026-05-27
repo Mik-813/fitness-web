@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useReCaptcha } from 'vue-recaptcha-v3'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { endpoints } from '$src/api/endpoints'
 import FallingGlass from '$src/components/FallingGlass.vue'
 import GoogleIcon from '$src/components/icons/GoogleIcon.vue'
@@ -20,6 +20,7 @@ const form = ref({
   password: '',
 })
 
+const route = useRoute()
 const router = useRouter()
 const transitionName = ref('slide-right')
 
@@ -66,47 +67,34 @@ const handleSubmit = async () => {
   }
 }
 
-let googleAuthInterval: ReturnType<typeof setInterval> | undefined
-
 async function loginWithGoogle() {
-  if (googleAuthInterval) {
-    clearInterval(googleAuthInterval)
-  }
-
   const recaptchaToken = await executeRecaptcha?.('google_login') ?? ''
-  const { data } = await endpoints.authGoogleRedirect({ recaptcha_token: recaptchaToken }).invoke()
+  const clientUrl = window.location.origin + route.path
   
+  const { data, error } = await endpoints.authGoogleRedirect({ 
+    recaptcha_token: recaptchaToken,
+    client_url: clientUrl,
+  }).invoke()
+
   if (data?.url) {
-    window.open(data.url, '_blank')
-
-    if (data.session_id) {
-      if (googleAuthInterval) {
-        clearInterval(googleAuthInterval)
-      }
-
-      googleAuthInterval = setInterval(
-        async () => {
-          const { data: pendingData } = await endpoints.authGooglePending({ session_id: data.session_id }).invoke()
-      
-          if (pendingData?.token) {
-            localStorage.setItem('token', pendingData.token)
-            localStorage.setItem('verified_at', 'veriefied')
-            clearInterval(googleAuthInterval)
-            router.push(paths.diet)
-          }
-          else if (pendingData?.message !== 'Pending') {
-            clearInterval(googleAuthInterval)
-          }
-        }, 
-        2000,
-      )
-    }
+    window.location.href = data.url
+  }
+  else if (error) {
+    customToast.error(error?.message ?? 'Google authentication failed. Please try again.')
   }
 }
 
-onUnmounted(() => {
-  if (googleAuthInterval) {
-    clearInterval(googleAuthInterval)
+onMounted(() => {
+  const token = route.query.token as string
+  const error = route.query.error as string
+
+  if (token) {
+    localStorage.setItem('token', token)
+    router.replace(paths.diet)
+  }
+  else if (error) {
+    customToast.error('Google authentication failed. Please try again.')
+    router.replace({ query: {} })
   }
 })
 

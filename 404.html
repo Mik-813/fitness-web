@@ -1,6 +1,0 @@
-<script>
-  const pathSegments = window.location.pathname.split("/").filter(Boolean);
-  const purePath = "/" + pathSegments.slice(1).join("/");
-  localStorage.setItem('path', purePath);
-  window.location.href = `${window.location.origin}/${pathSegments[0]}`
-</script>

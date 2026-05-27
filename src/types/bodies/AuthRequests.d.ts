@@ -16,7 +16,11 @@ interface ResetPasswordRequest {
   password: string
 }
 
-interface GoogleRedirectRequest { recaptcha_token: string, }
+interface GoogleRedirectRequest {
+  recaptcha_token: string
+  client_url: string 
+}
+
 interface GooglePendingRequest { session_id: string, }
 
 interface SendVerificationRequest { url: string, }
